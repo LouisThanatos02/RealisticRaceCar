@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import os, struct, array
+import time
 from fcntl import ioctl
 
 #GPIO設定---------------------
@@ -100,7 +101,7 @@ fn = '/dev/input/js0'
 def xbox_read():
     jsdev = open(fn, 'rb')
     evbuf = jsdev.read(8)
-    time, value, type, number = struct.unpack('IhBB', evbuf)
+    times, value, type, number = struct.unpack('IhBB', evbuf)
     return [time,value,type,number]
 
 axis_map = []
@@ -131,14 +132,14 @@ ioctl(jsdev, 0x80406a32, buf)  # JSIOCGAXMAP
 #---------------------------------------
 
 FB_speed=0
-old_angel = 0
-angel = 0
+old_angel = middle
+angel = middle
 
 #主程式-------------------------------
 while True:
     evbuf = jsdev.read(8)
     if evbuf:
-        time, value, type, number = struct.unpack('IhBB', evbuf)
+        times, value, type, number = struct.unpack('IhBB', evbuf)
         if type & 0x02:
             if number == LX:
                 axis_states["LX"] = value
@@ -157,61 +158,83 @@ while True:
         LY_value = axis_states["LY"]
         LX_value = axis_states["LX"]
        
-       #前進後退控制-----------------------------
-        if(LY_value != 0):
-            if(LY_value<0):
-                GPIO.output(forwardPin,1)
-                GPIO.output(backwardPin,0)
-                FB_speed = LY_value*(-1)
-                print("前進")
-            elif(LY_value>0):
-                GPIO.output(forwardPin,0)
-                GPIO.output(backwardPin,1)
-                FB_speed = LY_value
-                print("後退") 
-            #print("速度:",FB_speed) 
-            if((FB_speed>0)&(FB_speed<12000)):
-                speed = speed_1st
-                print("現在速度",speed)
-            if((FB_speed>12000)&(FB_speed<24000)):
-                speed = speed_2nd
-                print("現在速度",speed)
-            if((FB_speed>24000)&(FB_speed<31000)):
-                speed = speed_3rd
-                print("現在速度",speed)
-            if(FB_speed>31000):
-                speed = speed_max
-                print("現在速度",speed)
-            motor.ChangeDutyCycle(speed)
-            FB_Count = 1
+    #前進後退控制-----------------------------
+    if(LY_value != 0):
+        if(LY_value<0):
+            GPIO.output(forwardPin,1)
+            GPIO.output(backwardPin,0)
+            FB_speed = LY_value*(-1)
+            print("前進")
+        elif(LY_value>0):
+            GPIO.output(forwardPin,0)
+            GPIO.output(backwardPin,1)
+            FB_speed = LY_value
+            print("後退") 
+        #print("速度:",FB_speed) 
+        if((FB_speed>0)&(FB_speed<12000)):
+            speed = speed_1st
+            print("現在速度",speed)
+        if((FB_speed>12000)&(FB_speed<24000)):
+            speed = speed_2nd
+            print("現在速度",speed)
+        if((FB_speed>24000)&(FB_speed<31000)):
+            speed = speed_3rd
+            print("現在速度",speed)
+        if(FB_speed>31000):
+            speed = speed_max
+            print("現在速度",speed)
+        motor.ChangeDutyCycle(speed)
+        FB_Count = 1
 
-        if(axis_states["LY"] == 0):
-            if(FB_Count == 1):
-                GPIO.output(forwardPin,0)
-                GPIO.output(backwardPin,0)
-                print("!!!!!!!!!!!!!!!!!!停止!!!!!!!!!!!!!!!!!")
-                FB_Count = 0
-        #---------------------------------------
-        #轉向控制------------------------------- 
-        if(LX_value > 0):
-            angel = (int)(LX_value/1080)/10
-        elif(LX_value < 0):
-            angel = (int)(LX_value/1600)/10
+    if(axis_states["LY"] == 0):
+        if(FB_Count == 1):
+            GPIO.output(forwardPin,0)
+            GPIO.output(backwardPin,0)
+            print("!!!!!!!!!!!!!!!!!!停止!!!!!!!!!!!!!!!!!")
+            FB_Count = 0
+    #---------------------------------------
+    #轉向控制------------------------------- 
+    if(LX_value != 0):
+        angel = (int)(LX_value/10900)
+        """
+        if((LX_value>2184)&(LX_value<4368)):
+            angel = 14.6
+        if((LX_value>8736)&(LX_value<10920)):
+            angel = 14.2
+        if((LX_value>15288)&(LX_value<17472)):
+            angel = 13.8
+        if((LX_value>21840)&(LX_value<24024)):
+            angel = 13.4
+        if((LX_value>28392)&(LX_value<30576)):
+            angel = 13
         
-        if(angel != old_angel):
-            t_angel = middle - angel
-            print("角度:",t_angel)
-            servo.ChangeDutyCycle(t_angel)
-            Turn_Count = 1
-            print("old angel",old_angel)
-            print("new angel",angel)
-        #else:     
-            #print("old angel",old_angel)
-            #print("new angel",angel)
+        if((LX_value < -2184)&(LX_value > -4368)):
+            angel = 15.4
+        if((LX_value < -8736)&(LX_value > -10920)):
+            angel = 15.8
+        if((LX_value < -15288)&(LX_value > -17472)):
+            angel = 16.2
+        if((LX_value < -21840)&(LX_value > -24024)):
+            angel = 16.6
+        if((LX_value < -28392)&(LX_value > -30576)):
+            angel = 17
+        """    
 
-        old_angel = angel
+    if(angel != old_angel):
+        t_angel = middle - angel
+        print("角度:",t_angel)
+        servo.ChangeDutyCycle(t_angel)
+        #time.sleep(0.0001)
+        Turn_Count = 1
+        #print("old angel",old_angel)
+        #print("new angel",angel)
+    #else:     
+        #print("old angel",old_angel)
+        #print("new angel",angel)
+
+    old_angel = angel
         
-        if(axis_states["LX"] == 0):
-            if(Turn_Count == 1):
-                servo.ChangeDutyCycle(middle)
-                Turn_Count = 0
+    if(axis_states["LX"] == 0):
+        if(Turn_Count == 1):
+            servo.ChangeDutyCycle(middle)
+            Turn_Count = 0
