@@ -1,7 +1,40 @@
+import RPi.GPIO as GPIO
 import os, struct, array
 from fcntl import ioctl
 
-# Iterate over the joystick devices.
+#GPIO設定---------------------
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+
+forwardPin = 11
+backwardPin = 12
+
+GPIO.setup(32,GPIO.OUT)
+GPIO.setup(33,GPIO.OUT)
+GPIO.setup(forwardPin,GPIO.OUT)
+GPIO.setup(backwardPin,GPIO.OUT)
+
+motor=GPIO.PWM(33,200)
+servo=GPIO.PWM(32,100)
+
+motor.start(0)
+servo.start(15)
+
+Turn_Count=1
+df_tR = 12
+df_tL = 17
+middle = 15
+FB_Count=0
+df_speed=40  #Defultspeed
+speed_1st = 40
+speed_2nd = 60
+speed_3rd = 80
+speed_max = 100
+
+motor.ChangeDutyCycle(df_speed)
+#-------------------------------------
+
+#搖桿參數設定--------------------------
 print('Available devices:')
 
 for fn in os.listdir('/dev/input'):
@@ -37,8 +70,7 @@ button_states = {
 XBOX_TYPE_BUTTON = 0x01 #類型-按鈕
 XBOX_TYPE_AXIS = 0x02 #類型-搖桿+方向鍵
 
-
-
+"""
 XBOX_BUTTON_A = 0x00
 XBOX_BUTTON_B = 0x01
 XBOX_BUTTON_X = 0x02
@@ -53,6 +85,7 @@ XBOX_BUTTON_RO = 0x0a    # /* 右搖桿按鍵 */
 
 XBOX_BUTTON_ON = 0x01
 XBOX_BUTTON_OFF = 0x00
+"""
 
 LX = 0x00   # /* 左搖桿X軸 */
 LY = 0x01   # /* 左搖桿Y軸 */
@@ -62,15 +95,6 @@ RY = 0x03   # /* 右搖桿Y軸 */
 #RT = 0x05
 DB_X= 0x06    # /* 方向鍵X軸 */
 DB_Y = 0x07    # /* 方向鍵Y軸 */
-
-XBOX_AXIS_VAL_UP = -32767
-XBOX_AXIS_VAL_DOWN = 32767
-XBOX_AXIS_VAL_LEFT = -32767
-XBOX_AXIS_VAL_RIGHT = 32767
-
-XBOX_AXIS_VAL_MIN = -32767
-XBOX_AXIS_VAL_MAX = 32767
-XBOX_AXIS_VAL_MID = 0x00
 
 fn = '/dev/input/js0'
 def xbox_read():
@@ -104,52 +128,90 @@ num_axes = buf[0]
 # Get the axis map.
 buf = array.array('B', [0] * 0x40)
 ioctl(jsdev, 0x80406a32, buf)  # JSIOCGAXMAP
-#
+#---------------------------------------
 
+FB_speed=0
+old_angel = 0
+angel = 0
 
-# Main event loop
+#主程式-------------------------------
 while True:
     evbuf = jsdev.read(8)
     if evbuf:
         time, value, type, number = struct.unpack('IhBB', evbuf)
-        """
-        if type & 0x01:
-            if number == XBOX_BUTTON_A:
-                button_states["A"] = value
-            elif number == XBOX_BUTTON_B:
-                button_states["B"] = value
-            elif number == XBOX_BUTTON_X:
-                button_states["X"] = value
-            elif number == XBOX_BUTTON_Y:
-                button_states["Y"] = value
-            elif number == XBOX_BUTTON_LB:
-                button_states["LB"] = value
-            elif number == XBOX_BUTTON_RB:
-                button_states["RB"] = value
-            elif number == XBOX_BUTTON_START:
-                button_states["START"] = value
-            elif number == XBOX_BUTTON_BACK:
-                button_states["BACK"] = value
-            elif number == XBOX_BUTTON_HOME:
-                button_states["HOME"] = value
-            elif number == XBOX_BUTTON_LO:
-                button_states["LO"] = value
-            elif number == XBOX_BUTTON_RO:
-                button_states["RO"] = value
-            print(number)
-        """
         if type & 0x02:
             if number == LX:
                 axis_states["LX"] = value
-            elif number == LY:
+            if number == LY:
                 axis_states["LY"] = value
-            elif number == RX:
+            if number == RX:
                 axis_states["RX"] = value
-            elif number == RY:
+            if number == RY:
                 axis_states["RY"] = value
-            elif number == DB_X:
+            if number == DB_X:
                 axis_states["XX"] = value
-            elif number == DB_Y:
+            if number == DB_Y:
                 axis_states["YY"] = value
-            print(axis_states)
+            #print(LY_value)
+            #print(LX_value)
+        LY_value = axis_states["LY"]
+        LX_value = axis_states["LX"]
+       
+       #前進後退控制-----------------------------
+        if(LY_value != 0):
+            if(LY_value<0):
+                GPIO.output(forwardPin,1)
+                GPIO.output(backwardPin,0)
+                FB_speed = LY_value*(-1)
+                print("前進")
+            elif(LY_value>0):
+                GPIO.output(forwardPin,0)
+                GPIO.output(backwardPin,1)
+                FB_speed = LY_value
+                print("後退") 
+            #print("速度:",FB_speed) 
+            if((FB_speed>0)&(FB_speed<12000)):
+                speed = speed_1st
+                print("現在速度",speed)
+            if((FB_speed>12000)&(FB_speed<24000)):
+                speed = speed_2nd
+                print("現在速度",speed)
+            if((FB_speed>24000)&(FB_speed<31000)):
+                speed = speed_3rd
+                print("現在速度",speed)
+            if(FB_speed>31000):
+                speed = speed_max
+                print("現在速度",speed)
+            motor.ChangeDutyCycle(speed)
+            FB_Count = 1
+
+        if(axis_states["LY"] == 0):
+            if(FB_Count == 1):
+                GPIO.output(forwardPin,0)
+                GPIO.output(backwardPin,0)
+                print("!!!!!!!!!!!!!!!!!!停止!!!!!!!!!!!!!!!!!")
+                FB_Count = 0
+        #---------------------------------------
+        #轉向控制------------------------------- 
+        if(LX_value > 0):
+            angel = (int)(LX_value/1080)/10
+        elif(LX_value < 0):
+            angel = (int)(LX_value/1600)/10
         
+        if(angel != old_angel):
+            t_angel = middle - angel
+            print("角度:",t_angel)
+            servo.ChangeDutyCycle(t_angel)
+            Turn_Count = 1
+            print("old angel",old_angel)
+            print("new angel",angel)
+        #else:     
+            #print("old angel",old_angel)
+            #print("new angel",angel)
+
+        old_angel = angel
+        
+        if(axis_states["LX"] == 0):
+            if(Turn_Count == 1):
+                servo.ChangeDutyCycle(middle)
+                Turn_Count = 0
