@@ -2,6 +2,8 @@ import RPi.GPIO as GPIO
 import os, struct, array
 import time
 from fcntl import ioctl
+from FullScr_cam import start_cam
+import threading
 #GPIO設定---------------------
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
@@ -136,66 +138,67 @@ angel = middle
 
 #--------------------------------------
 #控制-------------------------------
-while True:
-    evbuf = jsdev.read(8)
-    if evbuf:
-        times, value, type, number = struct.unpack('IhBB', evbuf)
-        if type & 0x02:
-            if number == LX:
-                axis_states["LX"] = value
-            if number == LY:
-                axis_states["LY"] = value
-            if number == RX:
-                axis_states["RX"] = value
-            if number == RY:
-                axis_states["RY"] = value
-            if number == DB_X:
-                axis_states["XX"] = value
-            if number == DB_Y:
-                axis_states["YY"] = value
-            #print(LY_value)
-            #print(LX_value)
-        LY_value = axis_states["LY"]
-        LX_value = axis_states["LX"]
-   
-    #前進後退控制-----------------------------
-    if(LY_value != 0):
-        if(LY_value<0):
-            GPIO.output(forwardPin,1)
-            GPIO.output(backwardPin,0)
-            FB_speed = LY_value*(-1)
-            print("前進")
-        elif(LY_value>0):
-            GPIO.output(forwardPin,0)
-            GPIO.output(backwardPin,1)
-            FB_speed = LY_value
-            print("後退") 
+def start_joy():
+    while True:
+        evbuf = jsdev.read(8)
+        if evbuf:
+            times, value, type, number = struct.unpack('IhBB', evbuf)
+            if type & 0x02:
+                if number == LX:
+                    axis_states["LX"] = value
+                if number == LY:
+                    axis_states["LY"] = value
+                if number == RX:
+                    axis_states["RX"] = value
+                if number == RY:
+                    axis_states["RY"] = value
+                if number == DB_X:
+                    axis_states["XX"] = value
+                if number == DB_Y:
+                    axis_states["YY"] = value
+                #print(LY_value)
+                #print(LX_value)
+            LY_value = axis_states["LY"]
+            LX_value = axis_states["LX"]
+       
+        #前進後退控制-----------------------------
+        if(LY_value != 0):
+            if(LY_value<0):
+                GPIO.output(forwardPin,1)
+                GPIO.output(backwardPin,0)
+                FB_speed = LY_value*(-1)
+                print("前進")
+            elif(LY_value>0):
+                GPIO.output(forwardPin,0)
+                GPIO.output(backwardPin,1)
+                FB_speed = LY_value
+                print("後退") 
             #print("速度:",FB_speed) 
-        if((FB_speed>0)&(FB_speed<12000)):
-            speed = speed_1st
-            print("現在速度",speed)
-        if((FB_speed>12000)&(FB_speed<24000)):
-            speed = speed_2nd
-            print("現在速度",speed)
-        if((FB_speed>24000)&(FB_speed<31000)):
-            speed = speed_3rd
-            print("現在速度",speed)
-        if(FB_speed>31000):
-            speed = speed_max
-            print("現在速度",speed)
-        motor.ChangeDutyCycle(speed)
-        FB_Count = 1
+            if((FB_speed>0)&(FB_speed<12000)):
+                speed = speed_1st
+                print("現在速度",speed)
+            if((FB_speed>12000)&(FB_speed<24000)):
+                speed = speed_2nd
+                print("現在速度",speed)
+            if((FB_speed>24000)&(FB_speed<31000)):
+                speed = speed_3rd
+                print("現在速度",speed)
+            if(FB_speed>31000):
+                speed = speed_max
+                print("現在速度",speed)
+            motor.ChangeDutyCycle(speed)
+            FB_Count = 1
 
-    if(axis_states["LY"] == 0):
-        if(FB_Count == 1):
-            GPIO.output(forwardPin,0)
-            GPIO.output(backwardPin,0)
-            print("!!!!!!!!!!!!!!!!!!停止!!!!!!!!!!!!!!!!!")
-            FB_Count = 0
-    #---------------------------------------
-    #轉向控制------------------------------- 
-    if(LX_value != 0):
-        angel = (int)(LX_value/10900)
+        if(axis_states["LY"] == 0):
+            if(FB_Count == 1):
+                GPIO.output(forwardPin,0)
+                GPIO.output(backwardPin,0)
+                print("!!!!!!!!!!!!!!!!!!停止!!!!!!!!!!!!!!!!!")
+                FB_Count = 0
+        #---------------------------------------
+        #轉向控制------------------------------- 
+        if(LX_value != 0):
+            angel = (int)(LX_value/10900)
         """
         if((LX_value>2184)&(LX_value<4368)):
             angel = 14.6
@@ -219,21 +222,30 @@ while True:
         if((LX_value < -28392)&(LX_value > -30576)):
             angel = 17
         """    
-    if(angel != old_angel):
-        t_angel = middle - angel
-        print("角度:",t_angel)
-        servo.ChangeDutyCycle(t_angel)
+
+        if(angel != old_angel):
+            t_angel = middle - angel
+            print("角度:",t_angel)
+            servo.ChangeDutyCycle(t_angel)
         #time.sleep(0.0001)
-        Turn_Count = 1
+            Turn_Count = 1
         #print("old angel",old_angel)
         #print("new angel",angel)
     #else:     
         #print("old angel",old_angel)
         #print("new angel",angel)
 
-    old_angel = angel
+        old_angel = angel
         
-    if(axis_states["LX"] == 0):
-        if(Turn_Count == 1):
-            servo.ChangeDutyCycle(middle)
-            Turn_Count = 0
+        if(axis_states["LX"] == 0):
+            if(Turn_Count == 1):
+                servo.ChangeDutyCycle(middle)
+                Turn_Count = 0
+
+
+cam = threading.Thread(target = start_cam())
+joy = threading.Thread(targer = start_joy())
+if __name__ == '__main__':
+    cam.start()
+    joy.start()
+    #cam.join()
