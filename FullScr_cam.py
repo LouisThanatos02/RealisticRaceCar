@@ -14,11 +14,11 @@ import screeninfo
 
 
 def gstreamer_pipeline(
-    capture_width=1920,
-    capture_height=1080,
-    display_width=1280,
-    display_height=800,
-    framerate=20,
+    capture_width=720,
+    capture_height=2464,
+    display_width=800,
+    display_height=600,
+    framerate=16,
     flip_method=0,
 ):
     return (
@@ -56,7 +56,7 @@ def start_cam():
             cv2.setWindowProperty(window_name,cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
             cv2.imshow(window_name, img)
             # This also acts as
-            keyCode = cv2.waitKey(5) & 0xFF
+            keyCode = cv2.waitKey(1) & 0xFF
             # Stop the program on the ESC key
             if keyCode == 27:
                 break
