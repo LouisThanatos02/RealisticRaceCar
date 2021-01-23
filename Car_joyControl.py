@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import os, struct, array
 import time
+import math
 from fcntl import ioctl
 #GPIO設定---------------------
 GPIO.setwarnings(False)
@@ -26,13 +27,20 @@ df_tL = 17
 middle = 15
 FB_Count=0
 df_speed=40  #Defultspeed
-speed_1st = 40
-speed_2nd = 60
-speed_3rd = 80
-speed_max = 100
 
 motor.ChangeDutyCycle(df_speed)
-#-------------------------------------
+#LUT產生-------------------------------------
+js_value = 32767 #搖桿最大value
+slope = 10 #曲度,越大越曲
+section = 100 #轉動細緻程度
+DC_width = 6 #dutycycle總可條寬度
+js_lut = []
+sigmoid = []
+DC_lut = []
+for i in range(section):
+    js_lut.append(i*(js_value*2)/(section-1)-js_value) #搖桿參考值列表產生
+    sigmoid.append(DC_width/(1+math.exp(js_lut[i]/js_value*slope))) #根據搖桿參考值產生S型函數列表
+    DC_lut.append(round(sigmoid[i]+12,1)) #依據S型函數產生對應的DutyCycle值
 
 #搖桿參數設定--------------------------
 print('Available devices:')
@@ -163,27 +171,17 @@ while True:
         if(LY_value<0):
             GPIO.output(forwardPin,1)
             GPIO.output(backwardPin,0)
-            FB_speed = LY_value*(-1)
+            Ch_LYValue = LY_value*(-1)
             print("前進")
         elif(LY_value>0):
             GPIO.output(forwardPin,0)
             GPIO.output(backwardPin,1)
-            FB_speed = LY_value
+            Ch_LYValue = LY_value
             print("後退") 
             #print("速度:",FB_speed) 
-        if((FB_speed>0)&(FB_speed<12000)):
-            speed = speed_1st
-            print("現在速度",speed)
-        if((FB_speed>12000)&(FB_speed<24000)):
-            speed = speed_2nd
-            print("現在速度",speed)
-        if((FB_speed>24000)&(FB_speed<31000)):
-            speed = speed_3rd
-            print("現在速度",speed)
-        if(FB_speed>31000):
-            speed = speed_max
-            print("現在速度",speed)
+        speed = int(Ch_LYValue/32.767)/10 
         motor.ChangeDutyCycle(speed)
+        print("現在速度 :",speed)
         FB_Count = 1
 
     if(axis_states["LY"] == 0):
@@ -195,44 +193,14 @@ while True:
     #---------------------------------------
     #轉向控制------------------------------- 
     if(LX_value != 0):
-        angel = (int)(LX_value/10900)
-        """
-        if((LX_value>2184)&(LX_value<4368)):
-            angel = 14.6
-        if((LX_value>8736)&(LX_value<10920)):
-            angel = 14.2
-        if((LX_value>15288)&(LX_value<17472)):
-            angel = 13.8
-        if((LX_value>21840)&(LX_value<24024)):
-            angel = 13.4
-        if((LX_value>28392)&(LX_value<30576)):
-            angel = 13
-        
-        if((LX_value < -2184)&(LX_value > -4368)):
-            angel = 15.4
-        if((LX_value < -8736)&(LX_value > -10920)):
-            angel = 15.8
-        if((LX_value < -15288)&(LX_value > -17472)):
-            angel = 16.2
-        if((LX_value < -21840)&(LX_value > -24024)):
-            angel = 16.6
-        if((LX_value < -28392)&(LX_value > -30576)):
-            angel = 17
-        """    
-    if(angel != old_angel):
-        t_angel = middle - angel
-        print("角度:",t_angel)
-        servo.ChangeDutyCycle(t_angel)
-        #time.sleep(0.0001)
-        Turn_Count = 1
-        #print("old angel",old_angel)
-        #print("new angel",angel)
-    #else:     
-        #print("old angel",old_angel)
-        #print("new angel",angel)
-
-    old_angel = angel
-        
+        angel = math.floor((LX_value-(-js_value))/(js_value*2)*(section-1)+0.5) 
+        t_angel = DC_lut[angel]
+        if(t_angel != old_angel):
+            servo.ChangeDutyCycle(t_angel)
+            print("現在角度 :",t_angel)
+            Turn_Count = 1
+        old_angel = t_angel
+                 
     if(axis_states["LX"] == 0):
         if(Turn_Count == 1):
             servo.ChangeDutyCycle(middle)
