@@ -1,1 +1,2 @@
 # RealisticRaceCar
+start.py是將左右轉控制和全螢幕相機依不同的終端開啟
