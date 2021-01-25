@@ -90,7 +90,7 @@ while True:
     if(LX_value != 0):
         angel = math.floor((LX_value-(-js_value))/(js_value*2)*(section-1)+0.5)
         t_angel = DC_lut[angel]
-        if(t_angel != old_angel):
+        if(math.fabs(t_angel-old_angel)>0.01):
             servo.ChangeDutyCycle(t_angel)
             time.sleep(0.04)
             if(t_angel > 15):
