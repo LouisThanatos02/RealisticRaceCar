@@ -1,10 +1,22 @@
 import RPi.GPIO as GPIO
 import time
 import math
+import threading
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
+
+forwardPin = 11
+backwardPin = 12
+
+GPIO.setup(32,GPIO.OUT)
 GPIO.setup(33,GPIO.OUT)
+GPIO.setup(forwardPin,GPIO.OUT)
+GPIO.setup(backwardPin,GPIO.OUT)
+
+motor=GPIO.PWM(33,200)
 servo=GPIO.PWM(32,100)
+
+motor.start(0)
 servo.start(15)
 
 right_DC = 12 #DC = DutyCycle
@@ -25,9 +37,16 @@ for i in range(section):
 
 print(DC_lut)
 
+motor.ChangeDutyCycle(50)
+GPIO.output(forwardPin,1)
+GPIO.output(backwardPin,0)
 while(True):
     for i in DC_lut:
         servo.ChangeDutyCycle(i)
         print("角度 :",i)
-        time.sleep(0.02)
-
+        time.sleep(0.01)
+    for i in range(len(DC_lut),0,-1):
+        servo.ChangeDutyCycle(DC_lut[i-1])
+        print("角度 :",DC_lut[i-1])
+        time.sleep(0.01)
+        

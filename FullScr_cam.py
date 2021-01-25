@@ -14,10 +14,10 @@ import screeninfo
 
 
 def gstreamer_pipeline(
-    capture_width=720,
-    capture_height=2464,
-    display_width=800,
-    display_height=600,
+    capture_width=2880,
+    capture_height=1620,
+    display_width=1920,
+    display_height=1080,
     framerate=16,
     flip_method=0,
 ):

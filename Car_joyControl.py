@@ -142,6 +142,7 @@ FB_speed=0
 old_angel = middle
 angel = middle
 
+time.sleep(2)
 #--------------------------------------
 #控制-------------------------------
 while True:
