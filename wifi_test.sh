@@ -1,0 +1,1 @@
+nmcli devic wifi list
