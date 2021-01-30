@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 multithreading_gamepad.py
 Mark Heywood, 2018
@@ -11,7 +12,7 @@ __license__ = "MIT"
 
 
 from time import sleep
-from threading import Thread
+import threading
 import queue
 import time
 
@@ -32,7 +33,7 @@ class ThreadedInputs:
 
 	def start(self):
 		# Start the thread to poll gamepad event updates
-		t = Thread(target=self.gamepad_update, args=())
+		t = threading.Thread(target=self.gamepad_update, args=())
 		t.daemon = True
 		t.start()
 		
@@ -89,8 +90,8 @@ class ThreadedInputs:
 
 def drive_control():
 	# Function to drive robot motors
-	print('Speed -> {} || Value -> {}'.format('ABS_RZ', gamepad.command_value('ABS_RZ')))
-	print('Direction -> {} || Value -> {}'.format('ABS_X', gamepad.command_value('ABS_X')))
+	print('Speed -> {} || Value -> {}'.format('ABS_Z', gamepad.command_value('ABS_Z')))
+	print('Direction -> {} || Value -> {}'.format('ABS_Y', gamepad.command_value('ABS_Y')))
     
 
 def fire_nerf_dart(commandInput, commandValue):
@@ -105,8 +106,8 @@ def led_beacon(commandInput, commandValue):
 #-----------------------------------------------------------
 
 # Dictionary of game controller buttons we want to include.
-gamepadInputs = {'ABS_X': 128, 
-				'ABS_RZ': 127, 
+gamepadInputs = {'ABS_Y': 128, 
+				'ABS_Z': 127, 
 				'BTN_SOUTH': 0, 
 				'BTN_WEST': 0,
 				'BTN_START': 0}
@@ -127,7 +128,7 @@ def main():
 		# Get the next gamepad button event
 		commandInput, commandValue = gamepad.read()
 		# Gamepad button command filter
-		if commandInput == 'ABS_X' or commandInput == 'ABS_RZ':
+		if commandInput == 'ABS_Y' or commandInput == 'ABS_Z':
 			# Drive and steering
 			drive_control()
 		elif commandInput == 'BTN_SOUTH':
@@ -141,6 +142,7 @@ def main():
 			break 
 
 		sleep(0.01)
+		#print(threading.enumerate())
 		#print(commandInput, commandValue)
 		#print(1/(time.time() - timeCheck))
 
