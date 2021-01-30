@@ -92,7 +92,7 @@ while True:
         t_angel = DC_lut[angel]
         if(math.fabs(t_angel-old_angel)>0.01):
             servo.ChangeDutyCycle(t_angel)
-            time.sleep(0.04)
+            time.sleep(0.02)
             if(t_angel > 15):
                 print("現在方位 : 向左",round((t_angel-middle)*3,1),"度")
             if(t_angel < 15):

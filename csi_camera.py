@@ -1,3 +1,13 @@
+# MIT License
+# Copyright (c) 2019,2020 JetsonHacks
+# See license in root folder
+# CSI_Camera is a class which encapsulates an OpenCV VideoCapture element
+# The VideoCapture element is initialized via a GStreamer pipeline
+# The camera is read in a separate thread 
+# The class also tracks how many frames are read from the camera;
+# The calling application tracks the frames_displayed
+
+# Let's use a repeating Timer for counting FPS
 import cv2
 import threading
 
@@ -106,27 +116,31 @@ class CSI_Camera:
     # Here we directly select sensor_mode 3 (1280x720, 59.9999 fps)
     def create_gstreamer_pipeline(
         self,
-        sensor_id=0,
-        sensor_mode=3,
+        capture_width=1280,
+        capture_height=720,
         display_width=1280,
         display_height=720,
-        framerate=60,
+        framerate=30,
         flip_method=0,
     ):
         self._gstreamer_pipeline = (
-            "nvarguscamerasrc sensor-id=%d sensor-mode=%d ! "
+            "nvarguscamerasrc  ! "
             "video/x-raw(memory:NVMM), "
+            "width=(int)%d, height=(int)%d, "
             "format=(string)NV12, framerate=(fraction)%d/1 ! "
             "nvvidconv flip-method=%d ! "
             "video/x-raw, width=(int)%d, height=(int)%d, format=(string)BGRx ! "
             "videoconvert ! "
             "video/x-raw, format=(string)BGR ! appsink"
             % (
-                sensor_id,
-                sensor_mode,
+                capture_width,
+                capture_height,
                 framerate,
                 flip_method,
                 display_width,
                 display_height,
             )
         )
+
+
+    
