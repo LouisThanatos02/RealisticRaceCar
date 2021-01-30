@@ -44,11 +44,11 @@ def read_camera(csi_camera,display_fps):
 # DISPLAY_WIDTH=640
 # DISPLAY_HEIGHT=360
 # For 1920x1080
-CAPTURE_WIDTH=2880
-CAPTURE_HIEGHT=1620
+CAPTURE_WIDTH=1660
+CAPTURE_HIEGHT=1100
 DISPLAY_WIDTH=1920
 DISPLAY_HEIGHT=1080
-FARMERATE=30
+FARMERATE=25
 
 
 # 1920x1080, 30 fps
@@ -90,7 +90,7 @@ def start_cameras():
             camera.frames_displayed += 1
             # This also acts as a frame limiter
             # Stop the program on the ESC key
-            if (cv2.waitKey(20) & 0xFF) == 27:
+            if (cv2.waitKey(50) & 0xFF) == 27:
                 break   
 
     finally:
