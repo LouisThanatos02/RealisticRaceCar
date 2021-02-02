@@ -56,10 +56,13 @@ class ThreadedInputs:
 		# Start the thread to poll gamepad event updates
 		t = threading.Thread(target=self.gamepad_update, args=())
 		t2 = threading.Thread(target=self.servo_control, args=())
+		t3 = threading.Thread(target=self.motor_control, args=())
 		t.daemon = True
 		t2.daemon = True
+		t3.daemon = True
 		t.start()
 		t2.start()
+		t3.start()
 		
 	def gamepad_update(self):
 		while True:
@@ -125,17 +128,44 @@ class ThreadedInputs:
 					if(math.fabs(t_angel-old_angel)>0.01):
 						servo.ChangeDutyCycle(t_angel)
 						print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
-						time.sleep(0.05)
+						
 					old_angel = t_angel
 				else:
 					servo.ChangeDutyCycle(15)
 					#print("現在方位 : 中間")
+			time.sleep(0.01)
 			old_RX = RX
 
-
-def motor_control():
-	# Function to drive robot motors
-	print('Speed -> {} || Value -> {}'.format('ABS_Y', gamepad.command_value('ABS_Y')))
+	def motor_control(self):
+		# Function to drive robot motors
+		old_LY = 128
+		while 1:
+			LY = self.command_value('ABS_Y')
+			ly = LY - 128
+			if(LY-old_LY != 0):
+				if(LY != 128):
+					if(LY < 128):
+						GPIO.output(forwardPin,1)
+						GPIO.output(backwardPin,0)
+						ly = -ly
+						print("前進")
+					else:
+						GPIO.output(forwardPin,0)
+						GPIO.output(backwardPin,1)
+						print("後退")
+					speed = int(ly/0.128)/10
+					#print("速度:",speed)
+					time.sleep(0.05)
+					motor.ChangeDutyCycle(speed)
+					print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
+				else:
+					GPIO.output(forwardPin,0)
+					GPIO.output(backwardPin,0)
+					motor.ChangeDutyCycle(40)
+			
+			old_LY = LY
+			time.sleep(0.02)
+			
 
 def fire_nerf_dart(commandInput, commandValue):
 	# Function to fire Nerf dart gun on the robot
@@ -187,9 +217,9 @@ def main():
 		# Get the next gamepad button event
 		commandInput, commandValue = gamepad.read()
 		# Gamepad button command filter
-		if commandInput == 'ABS_Y' :
+		#if commandInput == 'ABS_Y' :
 			# Drive and steering
-			motor_control()
+
 		#elif commandInput == 'ABS_Z':
 			
 		#elif commandInput == 'BTN_SOUTH' ':
@@ -198,7 +228,7 @@ def main():
 		#elif commandInput == 'BTN_WEST':
 			# Switch the LED Beacon for example
 			#led_beacon(commandInput, commandValue)
-		elif commandInput == 'BTN_START':
+		if commandInput == 'BTN_START':
 			# Exit the while loop - this program is closing
 			break 
 
