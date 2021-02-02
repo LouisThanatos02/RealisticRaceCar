@@ -10,14 +10,35 @@ __author__ = "Mark Heywood"
 __version__ = "0.1.1"
 __license__ = "MIT"
 
-
+import RPi.GPIO as GPIO
 from time import sleep
 import threading
 import queue
 import time
+import math
 
 from inputs import get_gamepad
 
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+
+forwardPin = 11
+backwardPin = 12
+GPIO.setup(32,GPIO.OUT)
+GPIO.setup(33,GPIO.OUT)
+GPIO.setup(forwardPin,GPIO.OUT)
+GPIO.setup(backwardPin,GPIO.OUT)
+
+motor=GPIO.PWM(33,200)
+servo=GPIO.PWM(32,100)
+motor.start(0)
+servo.start(15)
+
+Turn_Count=1
+FB_Count=0
+
+df_speed=40  #Defultspeed
+motor.ChangeDutyCycle(df_speed)
 
 class ThreadedInputs:
 	NOMATCH = 'No Match'
@@ -34,8 +55,11 @@ class ThreadedInputs:
 	def start(self):
 		# Start the thread to poll gamepad event updates
 		t = threading.Thread(target=self.gamepad_update, args=())
+		t2 = threading.Thread(target=self.servo_control, args=())
 		t.daemon = True
+		t2.daemon = True
 		t.start()
+		t2.start()
 		
 	def gamepad_update(self):
 		while True:
@@ -86,13 +110,32 @@ class ThreadedInputs:
 			return self.gamepadInputs[commandKey]
 		else:
 			return None
+	
+	def servo_control(self):
+	# Function to drive robot servo
+		old_angel = 0
+		old_RX = 128
+		
+		while 1:
+			RX = self.command_value('ABS_Z')
+			if(RX-old_RX != 0):
+				if(RX !=128):
+					angel = math.floor((RX-(-js_left))/(js_right)*(section-1)+0.5)
+					t_angel = DC_lut[angel]
+					if(math.fabs(t_angel-old_angel)>0.01):
+						servo.ChangeDutyCycle(t_angel)
+						print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
+						time.sleep(0.05)
+					old_angel = t_angel
+				else:
+					servo.ChangeDutyCycle(15)
+					#print("現在方位 : 中間")
+			old_RX = RX
 
 
-def drive_control():
+def motor_control():
 	# Function to drive robot motors
-	print('Speed -> {} || Value -> {}'.format('ABS_Z', gamepad.command_value('ABS_Z')))
-	print('Direction -> {} || Value -> {}'.format('ABS_Y', gamepad.command_value('ABS_Y')))
-    
+	print('Speed -> {} || Value -> {}'.format('ABS_Y', gamepad.command_value('ABS_Y')))
 
 def fire_nerf_dart(commandInput, commandValue):
 	# Function to fire Nerf dart gun on the robot
@@ -104,10 +147,26 @@ def led_beacon(commandInput, commandValue):
 	print('Switch LED Beacon -> {} Value -> {}'.format(commandInput, commandValue))
 
 #-----------------------------------------------------------
+js_left = 0
+js_mid = 128
+js_right = 255
+slope = 3
+section = 500
+DC_width = 6
+js_lut = []
+sigmoid = []
+DC_lut = []
+for i in range(section):
+    js_lut.append(i*(js_right-js_left)/(section-1)-js_left)
+    sigmoid.append(DC_width/(1+math.exp((js_lut[i]-js_mid)/js_mid*slope)))
+    DC_lut.append(round(sigmoid[i]+12,1))
+#print (len(DC_lut))
 
+#-----------------------------------------------------------
 # Dictionary of game controller buttons we want to include.
-gamepadInputs = {'ABS_Y': 128, 
-				'ABS_Z': 127, 
+gamepadInputs = {
+				'ABS_Y': 128, 
+				'ABS_Z': 128, 
 				'BTN_SOUTH': 0, 
 				'BTN_WEST': 0,
 				'BTN_START': 0}
@@ -128,20 +187,22 @@ def main():
 		# Get the next gamepad button event
 		commandInput, commandValue = gamepad.read()
 		# Gamepad button command filter
-		if commandInput == 'ABS_Y' or commandInput == 'ABS_Z':
+		if commandInput == 'ABS_Y' :
 			# Drive and steering
-			drive_control()
-		elif commandInput == 'BTN_SOUTH':
+			motor_control()
+		#elif commandInput == 'ABS_Z':
+			
+		#elif commandInput == 'BTN_SOUTH' ':
 			# Fire Nerf dart button for example
-			fire_nerf_dart(commandInput, commandValue)
-		elif commandInput == 'BTN_WEST':
+			
+		#elif commandInput == 'BTN_WEST':
 			# Switch the LED Beacon for example
-			led_beacon(commandInput, commandValue)
+			#led_beacon(commandInput, commandValue)
 		elif commandInput == 'BTN_START':
 			# Exit the while loop - this program is closing
 			break 
 
-		sleep(0.01)
+		time.sleep(0.01)
 		#print(threading.enumerate())
 		#print(commandInput, commandValue)
 		#print(1/(time.time() - timeCheck))
