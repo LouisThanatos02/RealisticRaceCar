@@ -15,6 +15,7 @@ import cv2
 import numpy as np
 import threading
 from csi_camera import CSI_Camera
+import thread_joy as joy
 
 show_fps = True
 
@@ -101,5 +102,11 @@ def start_cameras():
     cv2.destroyAllWindows()
 
 
+
 if __name__ == "__main__":
+    jy = joy.ThreadedInputs()
+    for gamepadInput in joy.gamepadInputs:
+        jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
+    jy.start()
     start_cameras()
+

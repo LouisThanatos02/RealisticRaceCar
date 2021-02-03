@@ -51,6 +51,13 @@ class ThreadedInputs:
 		# Initialise the thread status flag
 		self.stopped = False
 		self.q = queue.LifoQueue()
+		"""self.gamepadInputs = {
+				'ABS_Y': 128, 
+				'ABS_Z': 128, 
+				'BTN_SOUTH': 0, 
+				'BTN_WEST': 0,
+				'BTN_START': 0}"""
+		
 
 	def start(self):
 		# Start the thread to poll gamepad event updates
@@ -63,6 +70,7 @@ class ThreadedInputs:
 		t.start()
 		t2.start()
 		t3.start()
+		
 		
 	def gamepad_update(self):
 		while True:
@@ -113,7 +121,7 @@ class ThreadedInputs:
 			return self.gamepadInputs[commandKey]
 		else:
 			return None
-	
+
 	def servo_control(self):
 	# Function to drive robot servo
 		old_angel = 0
@@ -155,7 +163,7 @@ class ThreadedInputs:
 						print("後退")
 					speed = int(ly/0.128)/10
 					#print("速度:",speed)
-					time.sleep(0.05)
+					time.sleep(0.08)
 					motor.ChangeDutyCycle(speed)
 					print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
 				else:
@@ -164,7 +172,7 @@ class ThreadedInputs:
 					motor.ChangeDutyCycle(40)
 			
 			old_LY = LY
-			time.sleep(0.02)
+			time.sleep(0.03)
 			
 
 def fire_nerf_dart(commandInput, commandValue):
@@ -202,10 +210,10 @@ gamepadInputs = {
 				'BTN_START': 0}
 
 # Initialise the gamepad object using the gamepad inputs Python package
-gamepad = ThreadedInputs()
+#gamepad = ThreadedInputs()
 
-def main():
-	""" Main entry point of this program """
+"""def main():
+	#Main entry point of this program 
 	# Load the object with gamepad buttons we want to catch 
 	for gamepadInput in gamepadInputs:
 		gamepad.append_command(gamepadInput, gamepadInputs[gamepadInput])
@@ -239,11 +247,24 @@ def main():
 
 	# Stop the gamepad thread and close this program
 	gamepad.stop()
-	exit()
+	exit()"""
 	
 	
 #-----------------------------------------------------------
 
 if __name__ == "__main__":
 	""" This is executed when run from the command line """
-	main()
+	
+	start = ThreadedInputs()
+	for gamepadInput in gamepadInputs:
+			start.append_command(gamepadInput, gamepadInputs[gamepadInput])
+	start.start()
+	while 1:
+		commandInput, commandValue = start.read()
+		if commandInput == 'BTN_START':
+			break 
+		time.sleep(0.01)
+	start.stop()
+	exit()
+	
+		
