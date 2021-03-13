@@ -9,6 +9,7 @@ servo_lut_test.py為產生左右轉S型控制參數的測試程式
 servo_test.py and servo_test1.py 是用來測試左右轉的馬達
 start.py是實感賽車專案的入口
 test.py測試用
+csi_camera.py是提供thread_cam的讀取
 thread_cam.py是多線程的相機讀取和顯示
 thread_joy.py是多線程的搖桿控制
 wifi_test.sh是一個簡單的wifi測試工具
