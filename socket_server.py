@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import socket,json
-HOST = '192.168.0.1'
+import socket
+HOST = '192.168.51.1'
 PORT = 8000
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
