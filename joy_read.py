@@ -91,8 +91,9 @@ class ThreadedInputs:
 def drive_control():
 	# Function to drive robot motors
 	print('Speed -> {} || Value -> {}'.format('ABS_RZ', gamepad.command_value('ABS_RZ')))
-	print('Direction -> {} || Value -> {}'.format('ABS_X', gamepad.command_value('ABS_X')))
-    
+	print('Direction -> {} || Value -> {}'.format('ABS_X', gamepad.command_value('ABS_X')))    
+def select_control(commandInput, commandValue):
+	print('Direction -> {} || Value -> {}'.format(commandInput, commandValue))
 
 def fire_nerf_dart(commandInput, commandValue):
 	# Function to fire Nerf dart gun on the robot
@@ -106,11 +107,16 @@ def led_beacon(commandInput, commandValue):
 #-----------------------------------------------------------
 
 # Dictionary of game controller buttons we want to include.
-gamepadInputs = {'ABS_X': 128, 
+gamepadInputs = {
+				'ABS_X': 128, 
 				'ABS_RZ': 127, 
 				'BTN_SOUTH': 0, 
 				'BTN_WEST': 0,
-				'BTN_START': 0}
+				'BTN_START': 0,
+				'BTN_START': 0,
+				'ABS_HAT0X' : 0,
+				'ABS_HAT0Y' : 0,
+				}
 
 # Initialise the gamepad object using the gamepad inputs Python package
 gamepad = ThreadedInputs()
@@ -131,6 +137,9 @@ def main():
 		if commandInput == 'ABS_X' or commandInput == 'ABS_RZ':
 			# Drive and steering
 			drive_control()
+		elif commandInput == 'ABS_HAT0X' or commandInput == 'ABS_HAT0Y':
+			# Fire Nerf dart button for example
+			select_control(commandInput, commandValue)
 		elif commandInput == 'BTN_SOUTH':
 			# Fire Nerf dart button for example
 			fire_nerf_dart(commandInput, commandValue)
@@ -142,7 +151,7 @@ def main():
 			break 
 
 		sleep(0.01)
-		print(commandInput, commandValue)
+		#print(commandInput, commandValue,end='\r')
 		#print(1/(time.time() - timeCheck))
 
 	# Stop the gamepad thread and close this program

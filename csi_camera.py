@@ -42,6 +42,7 @@ class CSI_Camera:
                 gstreamer_pipeline_string, cv2.CAP_GSTREAMER
             )
             
+            
         except RuntimeError:
             self.video_capture = None
             print("Unable to open camera")
@@ -58,6 +59,7 @@ class CSI_Camera:
         if self.video_capture != None:
             self.running=True
             self.read_thread = threading.Thread(target=self.updateCamera)
+            self.read_thread.daemon = True
             self.read_thread.start()
         return self
 
