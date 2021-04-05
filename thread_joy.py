@@ -135,7 +135,7 @@ class ThreadedInputs:
 					t_angel = DC_lut[angel]
 					if(math.fabs(t_angel-old_angel)>0.01):
 						servo.ChangeDutyCycle(t_angel)
-						print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
+						#print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
 						
 					old_angel = t_angel
 				else:
@@ -156,16 +156,16 @@ class ThreadedInputs:
 						GPIO.output(forwardPin,1)
 						GPIO.output(backwardPin,0)
 						ly = -ly
-						print("前進")
+						#print("前進")
 					else:
 						GPIO.output(forwardPin,0)
 						GPIO.output(backwardPin,1)
-						print("後退")
+						#print("後退")
 					speed = int(ly/0.128)/10
 					#print("速度:",speed)
 					time.sleep(0.08)
 					motor.ChangeDutyCycle(speed)
-					print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
+					#print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
 				else:
 					GPIO.output(forwardPin,0)
 					GPIO.output(backwardPin,0)
@@ -175,14 +175,13 @@ class ThreadedInputs:
 			time.sleep(0.03)
 			
 
-def fire_nerf_dart(commandInput, commandValue):
+#def fire_nerf_dart(commandInput, commandValue):
 	# Function to fire Nerf dart gun on the robot
-	print('Fire Nerf Dart -> {} Value -> {}'.format(commandInput, commandValue))
+	#print('Fire Nerf Dart -> {} Value -> {}'.format(commandInput, commandValue))
 
-
-def led_beacon(commandInput, commandValue):
+#def led_beacon(commandInput, commandValue):
 	# Function to switch led beacon on/off on the robot
-	print('Switch LED Beacon -> {} Value -> {}'.format(commandInput, commandValue))
+	#print('Switch LED Beacon -> {} Value -> {}'.format(commandInput, commandValue))
 
 #-----------------------------------------------------------
 js_left = 0
@@ -207,7 +206,10 @@ gamepadInputs = {
 				'ABS_Z': 128, 
 				'BTN_SOUTH': 0, 
 				'BTN_WEST': 0,
-				'BTN_START': 0}
+				'BTN_START': 0,
+				'ABS_HAT0X' : 0,
+				'ABS_HAT0Y' : 0,
+				}
 
 # Initialise the gamepad object using the gamepad inputs Python package
 #gamepad = ThreadedInputs()
