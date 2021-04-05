@@ -1,12 +1,12 @@
 #!/usr/bin/python
-from tkinter import *
 import tkinter as tk
-from PIL import Image, ImageTk
 from tkinter import filedialog,ttk
+from PIL import Image, ImageTk
 import cv2,time,threading
 from csi_camera import CSI_Camera
 import numpy as np
 import thread_joy as joy
+import string as st
 
 jy = joy.ThreadedInputs()
 for gamepadInput in joy.gamepadInputs:
@@ -109,13 +109,14 @@ nameImgTittle.pack(side=tk.LEFT)
 nameImgInsert = tk.Button(nameImgFrame,text='拍攝照片',width=10,height=1)
 nameImgInsert .pack(side=tk.LEFT)
 
-wordInput = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
-numInput = ['0','1','2','3','4','5','6','7','8','9']
+wordInput = st.ascii_lowercase
+numInput = '0123456789'
 
 keyBoardFrame = th.Fra,e(window)
 keyBoardFrame.pack(side=tk.TOP)
-for i in wordInput:
-    keyLable = 
+for i in range(len(wordInput)):
+    keyLable = tk.Label(keyBoardFrame,text=wordInput,bg='yellow',borderwidth=2,relief='raised')
+    if(i%)
 
 insertFrame = tk.Frame(loginFrame)
 insertFrame.pack(side = tk.TOP)
