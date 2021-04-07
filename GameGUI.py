@@ -1,71 +1,81 @@
+#!/usr/bin/python
 from tkinter import *
 import tkinter as tk
-from PIL import Image, ImageTk
-from tkinter import filedialog
-import cv2,time
-from csi_camera import CSI_Camera
+from tkinter import filedialog,ttk
+import time
 import numpy as np
-
-EXIT = False
+import string as st
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
-top = tk.Frame(window)
-top.pack()
-bottom = tk.Frame(window)
-bottom.pack(side=tk.BOTTOM)
+window.configure(background='#D8D8EB')
 
-CAPTURE_WIDTH=3264
-CAPTURE_HIEGHT=1848
-DISPLAY_WIDTH=1920
-DISPLAY_HEIGHT=1024
-FARMERATE=15
-
-camera = CSI_Camera()
-camera.create_gstreamer_pipeline(
-            capture_width=CAPTURE_WIDTH,
-            capture_height=CAPTURE_HIEGHT,
-            framerate=FARMERATE,
-            flip_method=0,
-            display_height=DISPLAY_HEIGHT,
-            display_width=DISPLAY_WIDTH,
-    )
-camera.open(camera.gstreamer_pipeline)
-camera.start()
-camera.start_counting_fps()
-
-kernel = np.ones([5,5],np.float32)/25
-
-def video_loop():
-    button_sta.config(state = tk.DISABLED)
-    success, img = camera.read()  # 從攝像頭讀取照片
-    if success:
-        cv2.waitKey(1)
-        cv2image = cv2.cvtColor(img, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
-        #blur_img = cv2.medianBlur(cv2image,5)
-        current_image = Image.fromarray(cv2image)#將影象轉換成Image物件
-        imgtk = ImageTk.PhotoImage(image=current_image)
-        image_canvas.imgtk = imgtk
-        image_canvas.config(image=imgtk)
-        window.after(1, video_loop)
-
-def  exit():
-    camera.stop()
-    camera.release()
+def exit():
     window.destroy()
 
+loginFrame = tk.Frame(window)
+loginFrame.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
+loginTittle = tk.Label(loginFrame,text='註冊',width=15,height=2)
+loginTittle.pack(side=tk.TOP)
 
-#建立canvas 顯示圖片
-image_canvas = tk.Label(top)
-image_canvas.pack(side=tk.LEFT)
-#建立讀取讀片按鈕  
-button_sta = tk.Button(bottom, text = "讀入本機攝像頭", width = 12, height = 2, command = video_loop)
-button_sta.pack(side=tk.LEFT)
+inputFrame = tk.Frame(loginFrame)
+inputFrame.pack(side = tk.TOP)
+nameTittle = tk.Label(inputFrame,text='註冊姓名 : ',width=10,height=2)
+nameTittle.grid(column=0, row=0, ipadx=5, pady=5)
+nameInsert = tk.Label(inputFrame,text ='輸入姓名',width=20,bg='yellow',borderwidth=2,relief='raised')
+nameInsert .grid(column=1, row=0, ipadx=5, pady=5)
 
-button_lev = tk.Button(bottom, text = "離開", width = 12, height = 2, command = exit)
-button_lev.pack(side=tk.LEFT)
+nameImgTittle = tk.Label(inputFrame,text='玩家照片 : ',width=10,height=2)
+nameImgTittle.grid(column=0, row=1, ipadx=5, pady=5)
+nameImgInsert = tk.Label(inputFrame,text='拍照',width=20,bg='yellow',borderwidth=2,relief='raised')
+nameImgInsert .grid(column=1, row=1, ipadx=5, pady=5)
 
-window.mainloop()
+insertFrame = tk.Frame(loginFrame)
+insertFrame.pack(side = tk.TOP)
+insertConfn = tk.Label(insertFrame,text='確認註冊',width=12,height=1,bg='yellow',borderwidth=2,relief='raised')
+insertConfn.pack(anchor=tk.CENTER)
 
-camera.release()
-cv2.destroyAllWindows()
+wordInput = st.ascii_lowercase
+numInput = '0123456789'
+col = 0
+row = 0
+keyLable = wordInput
+keyBoardFrame = tk.Frame(window)
+keyBoardFrame.pack(anchor = tk.CENTER)
+for i in range(len(wordInput)):
+    keyLable[i] = tk.Label(keyBoardFrame,text=wordInput[i],bg='yellow',borderwidth=2,relief='raised')
+    if(i%7 != 0):
+        col += 1
+    else:
+        col = 0
+        row +=1
+    keyLable.grid(column=col, row=row, ipadx=5, pady=5)
+    print(keyLable)
+
+
+
+fnBarFrame = tk.Frame(window) #選項的frame
+fnBarFrame.pack(anchor=tk.NW)
+creat_count = 1
+"""
+for i in range(len(sel_EN)):
+    sel_EN[i] = tk.Label(fnBarFrame, text = sel_CH[i],width=12,height=2,bg=sel_colr[i],borderwidth=2,relief=sel_list[i])
+    sel_EN[i] .pack(side=tk.LEFT,padx = 10,pady = 10)
+    if(i > 1):
+        sel_EN[i].pack_forget()
+    if(creat_count < len(sel_EN)):
+        sel_list.append('flat')
+        sel_colr.append('yellow')
+    creat_count += 1
+"""
+def  exit():
+    window.destroy()
+
+testFrame = tk.Frame(window) #測試用的frame
+testFrame.pack(anchor =tk.SE)
+button_lev = tk.Button(testFrame, text = "離開", width = 12, height = 2, command = exit)
+button_lev.pack(anchor =tk.SE)
+
+
+if __name__ == "__main__":
+    window.mainloop()
