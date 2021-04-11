@@ -6,7 +6,6 @@
 # Drivers for the camera and OpenCV are included in the base image
 
 import cv2
-import screeninfo
 # gstreamer_pipeline returns a GStreamer pipeline for capturing from the CSI camera
 # Defaults to 1280x720 @ 60fps
 # Flip the image by setting the flip_method (most common values: 0 and 2)

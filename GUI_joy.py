@@ -1,127 +1,181 @@
 #!/usr/bin/python
+from tkinter import *
 import tkinter as tk
 from tkinter import filedialog,ttk
-from PIL import Image, ImageTk
-import cv2,time,threading
-from csi_camera import CSI_Camera
+import time
 import numpy as np
-import thread_joy as joy
 import string as st
-
-jy = joy.ThreadedInputs()
-for gamepadInput in joy.gamepadInputs:
-    jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
-jy.start()
+from functools import partial
+from csi_camera import CSI_Camera
+import cv2
+from PIL import Image, ImageTk
+import thread_joy as joy
+import threading as thread
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
 window.configure(background='#D8D8EB')
 
-CAPTURE_WIDTH=800
-CAPTURE_HIEGHT=600
-DISPLAY_WIDTH=800
-DISPLAY_HEIGHT=600
-FARMERATE=20
+wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
+numList = '0,1,2,3,4,5,6,7,8,9'
+funList = 'Back,CapsLock,Enter'
+keyBoardFrame = tk.Frame(window)
+def keyBoard():
+    nameButtom.config(state = 'disable')
+    upperBool = False
+    keyStr = numList+','+wordList+','+'_,-,[,]'+','+funList
+    keyList = keyStr.split(',')
+    col = 0
+    row = 0
+    keyLable = []
+    lestLab = 0
+    keyBoardFrame.pack(side = tk.BOTTOM)
+    keyFrame = tk.Frame(keyBoardFrame)
+    keyFrame.grid(column=0, row=0)
+    for i in range(len(keyList)):
 
-camera = CSI_Camera()
-camera.create_gstreamer_pipeline(
-        capture_width=CAPTURE_WIDTH,
-        capture_height=CAPTURE_HIEGHT,
-        framerate=FARMERATE,
-        flip_method=0,
-        display_height=DISPLAY_HEIGHT,
-        display_width=DISPLAY_WIDTH,
-    )
+        if(keyList[i] == 'Back'):
+            DEF = nameDel
+            KEY = 0
+        elif(keyList[i] == 'CapsLock'):
+            DEF = UpperKey
+            KEY = keyLable
+        elif(keyList[i] == 'Enter'):
+            DEF = keyBoardClose
+            KEY = keyBoardFrame
+        else:
+            DEF = nameAdd
+            KEY = keyList[i]
+        #keyLable.append(tk.Label(keyBoardFrame,text=wordList[i],bg='yellow',borderwidth=2,relief='raised', width = 4, height = 2))
+        keyLable.append(tk.Button(keyBoardFrame,text=keyList[i],bg='yellow', width = 4, height = 2,command=partial(DEF,KEY)))
+        if(i%10 != 0):
+            col += 1
+        else:
+            col = 0
+            row +=1
+        keyLable[i].grid(column=col, row=row, padx=3, pady=3)
+        lestLab = i
+    def nameAdd(key):
+        nameInsert['text'] += key
 
-def videoCam_set():
+    def nameDel(key):
+        if(nameInsert['text']!=''):
+            nameInsert['text'] = nameInsert['text'][:-1]
 
-    camera.open(camera.gstreamer_pipeline)
+    
+    def UpperKey(key):
+        global upperBool,wordList
+        if(upperBool):
+            upperBool = False
+            word = wordList
+        else:
+            word = wordList.upper()
+            upperBool = True
+        keyStr = numList+','+word+','+'_,-,[,]'+','+funList
+        keyList = keyStr.split(',')
+        for i in range(len(keyList)):
+            if(keyList[i] == '←'):
+                DEF = nameDel
+                KEY = 0
+            elif(keyList[i] == '○'):
+                DEF = UpperKey
+                KEY = key
+            elif(keyList[i] == '㊣'):
+                DEF = keyBoardClose
+                KEY = keyBoardFrame
+            else:
+                DEF = nameAdd
+                KEY = keyList[i]
+            key[i].config(text = keyList[i],command = partial(DEF,KEY))
+    
+
+def keyBoardClose(key):
+    key.pack_forget()
+    nameButtom.config(state = 'active')
+
+def takePic():
+    camera = CSI_Camera()
+    camera.open(0)
     camera.start()
     camera.start_counting_fps()
 
-    kernel = np.ones([5,5],np.float32)/25
-
-    imgFrame = tk.Frame(window) #影像的frame
-    imgFrame.pack(anchor =tk.CENTER)
-    image_canvas = tk.Label(imgFrame)
-    image_canvas.pack(anchor=tk.CENTER)
-    video_loop()
+    #kernel = np.ones([5,5],np.float32)/25
     def video_loop(): #啟動相機迴圈
-        success, img = camera.read()  # 從攝像頭讀取照片
+        global imgtk,cv2image
+        success, camImg = camera.read()  # 從攝像頭讀取照片
         if success:
             cv2.waitKey(1)
-            cv2image = cv2.cvtColor(img, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
+            cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
             #blur_img = cv2.medianBlur(cv2image,5)
-            current_image = Image.fromarray(cv2image)#將影象轉換成Image物件
-            imgtk = ImageTk.PhotoImage(image=current_image)
+            imgtk = ImgChang(cv2image)
             image_canvas.imgtk = imgtk
             image_canvas.config(image=imgtk)
-            window.after(1, video_loop)
+            imgFrame.after(1, video_loop)
 
-sel_CH= ['房間列表','創建房間']
-sel_EN = ['roomList','roomCreate ','logout',]
-sel_list = ['ridge']
-sel_colr = ['#AE8F00']
+    def closeCam():
+        camera.stop()
+        camera.release()
+        image_Take.config(state = 'disable')
+        imgFrame.pack_forget()
+        reImg = cv2.resize(cv2image,(150,110))
+        imgtk = ImgChang(reImg)
+        nameImgInsert.imgtk = imgtk
+        nameImgInsert.config(image=imgtk)
 
-def sel_list_moveR():
-    global sel_list,sel_colr
+    def ImgChang(img):
+        current_image = Image.fromarray(img)#將影象轉換成Image物件
+        imgtk = ImageTk.PhotoImage(image=current_image)
+        return imgtk
+        
+    imgFrame = tk.Frame(window) #影像的frame
+    imgFrame.pack(anchor = tk.CENTER)
+    image_canvas = tk.Label(imgFrame)
+    image_canvas.pack(anchor=tk.CENTER)
+    image_Take = tk.Button(imgFrame,text='拍照(測試)',command = closeCam)
+    image_Take.pack(side=tk.TOP)
+    video_loop()
+    
 
-    sel_list.insert(0,sel_list.pop())
-    sel_colr.insert(0,sel_colr.pop())
-
-def sel_list_moveL():
-    global sel_list,sel_colr
-
-    sel_list.insert(len(sel_list),sel_list[0])
-    sel_list.remove(sel_list[0])
-    sel_colr.insert(len(sel_colr),sel_colr[0])
-    sel_colr.remove(sel_colr[0])
-
-def joy_select():
-    global sel_list,sel_EN,sel_colr
-    old_sel = 0
-    while 1:
-        sel = jy.command_value('ABS_HAT0X')
-        if(sel != old_sel):
-            if(sel > 0):
-               sel_list_moveR()
-            elif(sel < 0):
-                sel_list_moveL()
-        old_sel = sel
-        time.sleep(0.2)
+def register():
+    global imgtk
+    yourName = tk.Label(window,text='你的名字 : ',width=20,bg='yellow',borderwidth=2,relief='raised')
+    yourName .pack(side = tk.BOTTOM)
+    yourName['text'] += nameInsert['text']
+    yourPicLab = tk.Label(window,text='你的照片 : ',width=20,bg='yellow',borderwidth=2,relief='raised')
+    yourPicLab .pack(side = tk.BOTTOM)
+    yourPic = tk.Label(window)
+    yourPic .pack(side = tk.BOTTOM)
+    playerPic = nameImgInsert['image']
+    yourPic.imgtk = playerPic
+    yourPic.config(image=playerPic)
 
 loginFrame = tk.Frame(window)
-loginFrame.pack(anchor=tk.CENTER)
+loginFrame.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
 loginTittle = tk.Label(loginFrame,text='註冊',width=15,height=2)
 loginTittle.pack(side=tk.TOP)
 
-nameFrame = tk.Frame(loginFrame)
-nameFrame.pack(side = tk.TOP)
-nameTittle = tk.Label(nameFrame,text='註冊姓名 : ',width=10,height=2)
-nameTittle.pack(side=tk.LEFT)
-nameInsert = tk.Entry(nameFrame,highlightcolor='red',highlightthickness='2')
-nameInsert .pack(side=tk.LEFT)
+inputFrame = tk.Frame(loginFrame)
+inputFrame.pack(side = tk.TOP)
+nameTittle = tk.Label(inputFrame,text='註冊姓名 : ',width=10,height=2)
+nameTittle.grid(column=0, row=0, padx=5, pady=5)
+nameInsert = tk.Label(inputFrame,text ='',width=20,bg='yellow',borderwidth=2,relief='raised')
+nameInsert.grid(column=1, row=0, padx=5, pady=5)
+nameButtom = tk.Button(inputFrame, text = "開啟鍵盤(測試)", height = 1, command = keyBoard)
+nameButtom.grid(column=2, row=0, padx=5, pady=5)
 
-nameImgFrame = tk.Frame(loginFrame)
-nameImgFrame.pack(side = tk.TOP)
-nameImgTittle = tk.Label(nameImgFrame,text='玩家照片 : ',width=10,height=2)
-nameImgTittle.pack(side=tk.LEFT)
-nameImgInsert = tk.Button(nameImgFrame,text='拍攝照片',width=10,height=1)
-nameImgInsert .pack(side=tk.LEFT)
-
-wordInput = st.ascii_lowercase
-numInput = '0123456789'
-
-keyBoardFrame = th.Fra,e(window)
-keyBoardFrame.pack(side=tk.TOP)
-for i in range(len(wordInput)):
-    keyLable = tk.Label(keyBoardFrame,text=wordInput,bg='yellow',borderwidth=2,relief='raised')
-    if(i%)
+nameImgTittle = tk.Label(inputFrame,text='玩家照片 : ',width=10,height=2)
+nameImgTittle.grid(column=0, row=1, padx=5, pady=5)
+nameImgInsert = tk.Label(inputFrame,text='拍照',bg='yellow',borderwidth=2,relief='raised')
+nameImgInsert .grid(column=1, row=1, padx=5, pady=5)
+nameImgButtom = tk.Button(inputFrame,text='拍照(測試)', height = 1, command = takePic)
+nameImgButtom .grid(column=2, row=1, padx=5, pady=5)
 
 insertFrame = tk.Frame(loginFrame)
 insertFrame.pack(side = tk.TOP)
 insertConfn = tk.Label(insertFrame,text='確認註冊',width=12,height=1,bg='yellow',borderwidth=2,relief='raised')
 insertConfn.pack(anchor=tk.CENTER)
+insertButtom = tk.Button(insertFrame,text='確認註冊(測試)', height = 1, command = register)
+insertButtom .pack(side = tk.LEFT)
 
 fnBarFrame = tk.Frame(window) #選項的frame
 fnBarFrame.pack(anchor=tk.NW)
@@ -143,12 +197,12 @@ def  exit():
 testFrame = tk.Frame(window) #測試用的frame
 testFrame.pack(anchor =tk.SE)
 button_lev = tk.Button(testFrame, text = "離開", width = 12, height = 2, command = exit)
-button_lev.pack(side=tk.BOTTOM)
+button_lev.pack(anchor =tk.SE)
 
 
 if __name__ == "__main__":
-    thread_joySel = threading.Thread(target=joy_select, args=())
-    thread_joySel.daemon = True
-    thread_joySel.start()
+    jy = joy.ThreadedInputs()
+    for gamepadInput in joy.gamepadInputs:
+        jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
+    jy.start()
     window.mainloop()
-
