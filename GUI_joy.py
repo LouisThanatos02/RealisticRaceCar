@@ -18,7 +18,7 @@ window.configure(background='#D8D8EB')
 
 wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
 numList = '0,1,2,3,4,5,6,7,8,9'
-funList = 'Back,CapsLock,Enter'
+funList = 'Back,Caps,Enter'
 keyBoardFrame = tk.Frame(window)
 def keyBoard():
     nameButtom.config(state = 'disable')
@@ -37,7 +37,7 @@ def keyBoard():
         if(keyList[i] == 'Back'):
             DEF = nameDel
             KEY = 0
-        elif(keyList[i] == 'CapsLock'):
+        elif(keyList[i] == 'Caps'):
             DEF = UpperKey
             KEY = keyLable
         elif(keyList[i] == 'Enter'):
@@ -74,13 +74,13 @@ def keyBoard():
         keyStr = numList+','+word+','+'_,-,[,]'+','+funList
         keyList = keyStr.split(',')
         for i in range(len(keyList)):
-            if(keyList[i] == '←'):
+            if(keyList[i] == 'Back'):
                 DEF = nameDel
                 KEY = 0
-            elif(keyList[i] == '○'):
+            elif(keyList[i] == 'Caps'):
                 DEF = UpperKey
                 KEY = key
-            elif(keyList[i] == '㊣'):
+            elif(keyList[i] == 'Enter'):
                 DEF = keyBoardClose
                 KEY = keyBoardFrame
             else:
