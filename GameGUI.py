@@ -18,16 +18,16 @@ wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
 numList = '0,1,2,3,4,5,6,7,8,9'
 funList = 'Back,Caps,Enter'
 keyBoardFrame = tk.Frame(window)
-def keyBoard():
+def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的目標
     global upperBool
     upperBool = False
 
     def nameAdd(key):
-        nameInsert['text'] += key
+        target['text'] += key
 
     def nameDel(key):
-        if(nameInsert['text']!=''):
-            nameInsert['text'] = nameInsert['text'][:-1]
+        if(target['text']!=''):
+            target['text'] = target['text'][:-1]
 
     def UpperKey(key):
         global wordList,upperBool
@@ -54,7 +54,7 @@ def keyBoard():
                 KEY = keyList[i]
             key[i].config(text = keyList[i],command = partial(DEF,KEY))
 
-    nameButtom.config(state = 'disable')
+    trigger.config(state = 'disable')
     
     keyStr = numList+','+wordList+','+'_,-,[,]'+','+funList
     keyList = keyStr.split(',')
@@ -162,7 +162,8 @@ nameTittle = tk.Label(inputFrame,text='註冊姓名 : ',width=10,height=2)
 nameTittle.grid(column=0, row=0, padx=5, pady=5)
 nameInsert = tk.Label(inputFrame,text ='',width=20,bg='yellow',borderwidth=2,relief='raised')
 nameInsert.grid(column=1, row=0, padx=5, pady=5)
-nameButtom = tk.Button(inputFrame, text = "開啟鍵盤(測試)", height = 1, command = keyBoard)
+nameButtom = tk.Button(inputFrame, text = "開啟鍵盤(測試)", height = 1)
+nameButtom['command'] = partial(keyBoard,nameInsert,nameButtom)
 nameButtom.grid(column=2, row=0, padx=5, pady=5)
 
 nameImgTittle = tk.Label(inputFrame,text='玩家照片 : ',width=10,height=2)
