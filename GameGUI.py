@@ -9,6 +9,7 @@ from functools import partial
 from csi_camera import CSI_Camera
 import cv2
 from PIL import Image, ImageTk
+import requests as rqs
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
