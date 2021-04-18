@@ -39,7 +39,7 @@ class CSI_Camera:
     def open(self, gstreamer_pipeline_string):
         try:
             self.video_capture = cv2.VideoCapture(
-                gstreamer_pipeline_string, cv2.CAP_GSTREAMER
+                gstreamer_pipeline_string, #cv2.CAP_GSTREAMER
             )
             
             

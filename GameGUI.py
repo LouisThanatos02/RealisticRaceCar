@@ -9,7 +9,7 @@ from functools import partial
 from csi_camera import CSI_Camera
 import cv2
 from PIL import Image, ImageTk
-import requests as rqs
+from request import Api_request
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
@@ -67,7 +67,6 @@ def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的�
     keyFrame = tk.Frame(keyBoardFrame)
     keyFrame.grid(column=0, row=0)
     for i in range(len(keyList)):
-
         if(keyList[i] == 'Back'):
             DEF = nameDel
             KEY = 0
@@ -91,7 +90,6 @@ def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的�
         lestLab = i
     
     
-
 def keyBoardClose(key):
     key.pack_forget()
     nameButtom.config(state = 'active')
@@ -104,7 +102,7 @@ def takePic():
 
     kernel = np.ones([5,5],np.float32)/25
     def video_loop(): #啟動相機迴圈
-        global imgtk,cv2image
+        global imgtk,cv2image,camImg
         success, camImg = camera.read()  # 從攝像頭讀取照片
         if success:
             cv2.waitKey(1)
@@ -140,7 +138,7 @@ def takePic():
     
 
 def register():
-    global imgtk
+    global imgtk,camImg
     yourName = tk.Label(window,text='你的名字 : ',width=20,bg='yellow',borderwidth=2,relief='raised')
     yourName .pack(side = tk.BOTTOM)
     yourName['text'] += nameInsert['text']
@@ -151,6 +149,11 @@ def register():
     playerPic = nameImgInsert['image']
     yourPic.imgtk = playerPic
     yourPic.config(image=playerPic)
+    request.name = nameInsert['text']
+    request.register()
+    name_img = camImg
+    car_img = cv2.imread('./img/moje.jpg')
+    request.player_create(name_img,car_img)
 
 loginFrame = tk.Frame(window)
 loginFrame.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
@@ -205,4 +208,5 @@ button_lev.pack(anchor =tk.SE)
 
 
 if __name__ == "__main__":
+    request = Api_request()
     window.mainloop()
