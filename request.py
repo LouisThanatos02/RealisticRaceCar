@@ -33,19 +33,17 @@ class Api_request:
         state = self.get_text(self.player_create.text)
         #print(state)
         if(state['status']):
-            print("create success !")
             self.player_id = state['id']
             #print("你的ID是",self.id)
-        else:
-            print("create failled !")
-            print(state['reason'])
-        self.allMods = rqs.get(url = self.mods_all)
+        print(state['reason'])
+        self.allMods = rqs.get(url = self.mods_all,headers = self.headers)
         self.allMods_text = self.get_text(self.allMods.text)
-        type(self.allMods_text)
+        #print(self.allMods_text)
 
     def room_create(self):
-        data = dict(leaderID = self.player_id,modID = self.mod_id)
-        self.rooms_create = rqs.post(url = self.room_create_url,data = data,headers = self.headers)
+        if(self.player_id != ""):
+            data = dict(leaderID = self.player_id,modID = self.mod_id)
+            self.rooms_create = rqs.post(url = self.room_create_url,data = data,headers = self.headers)
 
     def get_token(self):
         login_js = self.get_text(self.login.text)
@@ -84,4 +82,5 @@ if __name__ == "__main__":
     car_img = cv2.imread('./img/gyys.jpg')
     request.register()
     request.player_create(name_img,car_img)
+    request.mod_id = input('請輸入房間模式 : ')
     request.room_create()
