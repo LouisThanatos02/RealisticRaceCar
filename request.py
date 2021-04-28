@@ -10,11 +10,14 @@ class Api_request:
         self.email = self.name +'@gm.lhu.edu.tw'
         self.password = self.name + 'pwd1234'
         self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
-        self.register_url = self.base_url+'register'
-        self.login_url =  self.base_url+'login'
-        self.player_create_url =  self.base_url+'players/create'
-        self.mods_all = self.base_url+'mods'
-        self.room_create_url =  self.base_url+'rooms/create'
+        self.register_url = self.base_url+'register'    #post
+        self.login_url =  self.base_url+'login'         #post
+        #get
+        self.mods_all = self.base_url+'mods'                
+        #post
+        self.player_create_url =  self.base_url+'players'   
+        self.room_create_url =  self.base_url+'rooms'
+        #patch
         
 
     def register(self):
