@@ -29,17 +29,19 @@ class Api_request:
         
 
     def register(self):
-        data = dict(email = self.email
-                    ,name = self.name
-                    ,password = self.password)
-        self.regist = rqs.post(url = self.register_url,data = data)
-        self.login = rqs.post(url = self.login_url,data = data)
+        data = dict(email = self.email,
+                    name = self.name,
+                    password = self.password,)
+        self.regist = rqs.post(url = self.register_url,
+                               data = data)
+        self.login = rqs.post(url = self.login_url,
+                              data = data)
         self.get_token()
 
     def get_players(self):
         try:
-            self.players = rqs.get(url = self.player_all 
-                                   ,headers = self.headers)
+            self.players = rqs.get(url = self.player_all, 
+                                   headers = self.headers)
             self.players_text = self.json_decode(self.players.text)
             self.players_data = self.players_text['data'][self.player_id]
             print(players_text['reason'])
@@ -48,8 +50,8 @@ class Api_request:
 
     def get_rooms(self):
         try:
-            self.rooms = rqs.get(url = self.room_all 
-                                 ,headers = self.headers)
+            self.rooms = rqs.get(url = self.room_all, 
+                                 headers = self.headers,)
             self.rooms_text = self.json_decode(self.rooms.text)
             self.rooms_data = self.rooms_text['data']
             print(self.rooms_text['reason'])
@@ -58,8 +60,8 @@ class Api_request:
 
     def get_results(self):
         try:
-            self.results = rqs.get(url = self.result_all 
-                                   ,headers = self.headers)
+            self.results = rqs.get(url = self.result_all, 
+                                   headers = self.headers,)
             self.results_text = self.json_decode(self.results.text)
             self.results_data = self.results_text['data']
             print(self.results_text['reason'])
@@ -68,8 +70,8 @@ class Api_request:
 
     def get_mods(self):
         try:
-            self.mods = rqs.get(url = self.mod_all 
-                                ,headers = self.headers)
+            self.mods = rqs.get(url = self.mod_all,
+                                headers = self.headers,)
             self.mods_text = self.json_decode(self.mods.text)
             self.mods_data = self.mods_text['data']
             print(self.mods_text['reason'])
@@ -77,17 +79,17 @@ class Api_request:
             print('模式獲取失敗')
 
     def create_player(self,name_img,car_img): #img must be numpy_array
-        data = dict(name = self.name)
+        data = dict(name = self.name,)
         name_img = self.img_encode(name_img)
         car_img = self.img_encode(car_img)
         files = {'name_img' : name_img,
-                 'car_img' : car_img}
+                 'car_img' : car_img,}
         try:
         #if(1):
-            self.player_create = rqs.post(url = self.player_create_url
-                                          ,data = data
-                                          ,headers = self.headers
-                                          ,files = files)
+            self.player_create = rqs.post(url = self.player_create_url,
+                                          data = data,
+                                          headers = self.headers,
+                                          files = files,)
             self.player_create_text = self.json_decode(self.player_create.text)
             if(self.player_create_text['status']):
                 self.player_id = self.player_create_text['id']
@@ -102,13 +104,13 @@ class Api_request:
 
     def create_room(self):
         if((self.player_id != '') & (self.mod_id != '')):
-            data = dict(leaderID = self.player_id
-                        ,modID = self.mod_id)
+            data = dict(leaderID = self.player_id,
+                        modID = self.mod_id,)
             try:
             #if(1):
-                self.room_create = rqs.post(url = self.room_create_url
-                                             ,data = data
-                                             ,headers = self.headers)
+                self.room_create = rqs.post(url = self.room_create_url,
+                                             data = data,
+                                             headers = self.headers,)
                 self.room_create_text = self.json_decode(self.room_create.text)
                 if(self.room_create_text['status']):
                     self.room_id = self.room_create_text['id']
@@ -123,13 +125,13 @@ class Api_request:
 
     def create_result(self):
         if((self.player_id != '') & (self.room_id != '')):
-            #try:
-            if(1):
-                data = dict(playerID = self.player_id
-                            ,roomID = self.room_id)
-                self.result_create = rqs.post(url = self.result_create_url
-                                               ,data = data
-                                               ,headers = self.headers)
+            try:
+            #if(1):
+                data = dict(playerID = self.player_id,
+                            roomID = self.room_id,)
+                self.result_create = rqs.post(url = self.result_create_url,
+                                              data = data,
+                                              headers = self.headers,)
                 self.result_create_text = self.json_decode(self.result_create.text)
                 if(self.result_create_text['status']):
                     self.result_id = self.result_create_text['id']
@@ -140,8 +142,16 @@ class Api_request:
                 if(self.result_create_text['debug']):
                     print(self.result_create_text['debug'])
                 
-            #except:
-                #print('結果創建失敗')
+            except:
+                print('結果創建失敗')
+    
+    def update_player(self):
+        data = dict(id = self.player_id
+                    ,roomID = self.room_id)
+        if(self.player_id != ''):
+            self.player_updata = rqs.patch(url = self.player_update_url,
+                                           data = data,
+                                           headers = self.headers,)
 
     def get_token(self):
         login_js = self.json_decode(self.login.text)
@@ -181,8 +191,9 @@ if __name__ == "__main__":
     car_img = cv2.imread('./img/gyys.jpg')
     request.register()
     request.create_player(name_img,car_img)
-    create = 'n'
+    create = ''
     choose = ''
+    season = True
     while(choose != '3'):
         choose = input('請選擇 (1)查看房間 (2)新增房間 (3)離開: ')
         if(choose == '1'):
@@ -190,24 +201,28 @@ if __name__ == "__main__":
             rooms = request.rooms_data
             if(rooms):
                 for i in rooms:
-                    print('房號 : ',i
-                          ,'，房間名稱 : ',rooms[i]['name']
-                          ,'，房主 : ',rooms[i]['leader']
-                          ,'，模式 : ',rooms[i]['mod']
-                          ,'，房間狀態 : ',rooms[i]['state'])
+                    print('房號 : ',i,
+                          '，房間名稱 : ',rooms[i]['name'],
+                          '，房主 : ',rooms[i]['leader'],
+                          '，模式 : ',rooms[i]['mod'],
+                          '，房間狀態 : ',rooms[i]['state'],)
                 
                 
             else:
-                create = input('目前無房間，要新增一個?(y/n)')
+                while(season):
+                    create = input('目前無房間，要新增一個?(y/n) : ')
+                    season = (create.upper() != 'Y')&(create.upper() != 'N')
+                    if(season):
+                        print('請輸入 y(Y)或n(N)')
 
         if((choose == '2') | (create.upper() == 'Y')):
-            create = 'n'
+            create = ''
             request.get_mods()
             mods = request.mods_data
             for i in mods:
-                print('模式 : ',i
-                      ,'，模式名稱 : ',mods[i]['name']
-                      ,'，模式說明 : ',mods[i]['comment'])
+                print('模式 : ',i,
+                      '，模式名稱 : ',mods[i]['name'],
+                      '，模式說明 : ',mods[i]['comment'],)
 
             request.mod_id = input('請輸入房間模式 : ')
             request.create_room()
