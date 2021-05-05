@@ -149,9 +149,35 @@ class Api_request:
         data = dict(id = self.player_id
                     ,roomID = self.room_id)
         if(self.player_id != ''):
-            self.player_updata = rqs.patch(url = self.player_update_url,
+            try:
+                self.player_updata = rqs.patch(url = self.player_update_url,
                                            data = data,
                                            headers = self.headers,)
+                self.player_updata_text = self.json_decode(self.player_updata.text)
+                if(self.player_updata_text['status']):     
+                    print(self.player_updata_text['reason'])
+
+                if(self.player_updata_text['debug']):
+                    print(self.player_updata_text['debug'])
+            except:
+                print('玩家修改失敗')
+
+    def updata_room(self,state):
+        data = dict(id = self.room_id
+                    ,state = state)
+        if(self.room_id != ''):
+            try:
+                self.room_updata = rqs.patch(url = self.room_update_url,
+                                            data = data,
+                                            headers = self.headers,)
+                self.room_updata_text = self.json_decode(self.room_updata.text)
+                if(self.room_updata_text['status']):     
+                    print(self.room_updata_text['reason'])
+
+                if(self.room_updata_text['debug']):
+                    print(self.room_updata_text['debug'])
+            except:
+                print('房間修改失敗')
 
     def get_token(self):
         login_js = self.json_decode(self.login.text)
@@ -192,22 +218,39 @@ if __name__ == "__main__":
     request.register()
     request.create_player(name_img,car_img)
     create = ''
-    choose = ''
+    choose_1st = ''
+    choose_2nd = ''
     season = True
-    while(choose != '3'):
-        choose = input('請選擇 (1)查看房間 (2)新增房間 (3)離開: ')
-        if(choose == '1'):
+    while(choose_1st != '3'):
+        choose_1st = input('請選擇 (1)查看房間 (2)新增房間 (3)離開: ')
+        if(choose_1st == '1'):
             request.get_rooms()
             rooms = request.rooms_data
             if(rooms):
                 for i in rooms:
+                    print('-------------------------------------------')
                     print('房號 : ',i,
-                          '，房間名稱 : ',rooms[i]['name'],
-                          '，房主 : ',rooms[i]['leader'],
-                          '，模式 : ',rooms[i]['mod'],
-                          '，房間狀態 : ',rooms[i]['state'],)
-                
-                
+                          '\n房間名稱 : ',rooms[i]['name'],
+                          '\n房主 : ',rooms[i]['leader'],
+                          '\n模式 : ',rooms[i]['mod'],
+                          '\n房間狀態 : ',rooms[i]['state'],)
+                    print('-------------------------------------------')
+                while(choose_2nd != '3'):
+                    choose_2nd = input('請選擇 (1)加入房間 (2)新增房間 (3)返回: ')
+                    if(choose_2nd == '1'):
+                        roomID = input('請輸入欲加入的房間號碼 : ')
+                        try:
+                            if(rooms[roomID]):
+                                request.room_id = roomID
+                                request.update_player()
+                                request.create_result()
+                        except:
+                            print('查無此房號')
+                    elif(choose_2nd == '2'):
+                        choose = '2'
+                    elif(choose_2nd == '3'):
+                        break
+                choose_2nd = ''
             else:
                 while(season):
                     create = input('目前無房間，要新增一個?(y/n) : ')
@@ -215,15 +258,19 @@ if __name__ == "__main__":
                     if(season):
                         print('請輸入 y(Y)或n(N)')
 
-        if((choose == '2') | (create.upper() == 'Y')):
+        if((choose_1st == '2') | (create.upper() == 'Y')):
             create = ''
             request.get_mods()
             mods = request.mods_data
             for i in mods:
+                print('-------------------------------------------')
                 print('模式 : ',i,
-                      '，模式名稱 : ',mods[i]['name'],
-                      '，模式說明 : ',mods[i]['comment'],)
+                      '\n模式名稱 : ',mods[i]['name'],
+                      '\n模式說明 : ',mods[i]['comment'],)
+                print('-------------------------------------------')
 
             request.mod_id = input('請輸入房間模式 : ')
             request.create_room()
             request.create_result()
+            request.update_player()
+            choose = input('請選擇 (1)查看房間 (2)新增房間 (3)離開: ')
