@@ -2,7 +2,7 @@ import requests as rqs
 import json,io,cv2
 import numpy as np
 from csi_camera import CSI_Camera
-
+        
 class Api_request:
     
     def __init__(self):
@@ -16,7 +16,8 @@ class Api_request:
         self.player_all = self.base_url+'players'
         self.room_all = self.base_url+'rooms'
         self.result_all = self.base_url+'results'
-        self.mod_all = self.base_url+'mods'                
+        self.mod_all = self.base_url+'mods'
+        self.qrcode_all = self.base_url+'qrcodes'
         #post 新增
         self.player_create_url =  self.base_url+'players'
         self.room_create_url =  self.base_url+'rooms'
@@ -25,7 +26,15 @@ class Api_request:
         self.method = 'patch' #data + _method = self.method
         self.player_update_url = self.base_url+'players/update'
         self.room_update_url = self.base_url+'rooms/update'  
-        self.result_update_url = self.base_url+'results/update'  
+        self.result_update_url = self.base_url+'results/update'
+        #CkPt
+        self.CkPt['ck_1'] = None  #mm:ss.micsec
+        self.CkPt['ck_2']= None
+        self.CkPt['ck_3'] = None
+        self.CkPt['ck_4'] = None
+        self.CkPt['ck_5'] = None
+        self.CkPt['ck_end'] = None
+
         
 
     def register(self):
@@ -77,6 +86,16 @@ class Api_request:
             print(self.mods_text['reason'])
         except:
             print('模式獲取失敗')
+
+    def get_qrcodes(self):
+        try:
+            self.qrcodes = rqs.get(url = self.qrcode_all,
+                                headers = self.headers,)
+            self.qrcodes_text = self.json_decode(self.qrcodes.text)
+            self.qrcodes_data = self.qrcodes_text['data']
+            print(self.qrcodes_text['reason'])
+        except:
+            print('qrcode獲取失敗')
 
     def create_player(self,name_img,car_img): #img must be numpy_array
         data = dict(name = self.name,)
@@ -178,6 +197,28 @@ class Api_request:
                     print(self.room_updata_text['debug'])
             except:
                 print('房間修改失敗')
+
+    def updata_result(self,):
+        data = dict(id = self.result_id,
+                    ck_1 = self.CkPt['ck_1'],
+                    ck_2 = self.CkPt['ck_2'],
+                    ck_3 = self.CkPt['ck_3'],
+                    ck_4 = self.CkPt['ck_4'],
+                    ck_5 = self.CkPt['ck_5'],
+                    ck_end = self.CkPt['ck_end'],)
+        if(self.result_id != ''):
+            try:
+                self.result_updata = rqs.patch(url = self.result_update_url,
+                                            data = data,
+                                            headers = self.headers,)
+                self.result_updata_text = self.json_decode(self.result_updata.text)
+                if(self.result_updata_text['status']):     
+                    print(self.result_updata_text['reason'])
+
+                if(self.result_updata_text['debug']):
+                    print(self.result_updata_text['debug'])
+            except:
+                print('結果修改失敗')
 
     def get_token(self):
         login_js = self.json_decode(self.login.text)
