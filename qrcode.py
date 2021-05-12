@@ -1,4 +1,4 @@
-import cv2
+from cv2
 
 class QrCodeReader:
 

@@ -10,7 +10,7 @@ from csi_camera import CSI_Camera
 import cv2
 from PIL import Image, ImageTk
 from request import Api_request
-
+from qrcode import QrCodeReader
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
@@ -20,6 +20,8 @@ wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
 numList = '0,1,2,3,4,5,6,7,8,9'
 funList = 'Back,Caps,Enter'
 keyBoardFrame = tk.Frame(window)
+
+reader = QrCodeReader()
 def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的目標
     global upperBool
     upperBool = False
