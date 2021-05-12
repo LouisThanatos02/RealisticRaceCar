@@ -28,8 +28,9 @@ class Api_request:
         self.room_update_url = self.base_url+'rooms/update'  
         self.result_update_url = self.base_url+'results/update'
         #CkPt
+        self.CkPt = {}
         self.CkPt['ck_1'] = None  #mm:ss.micsec
-        self.CkPt['ck_2']= None
+        self.CkPt['ck_2'] = None
         self.CkPt['ck_3'] = None
         self.CkPt['ck_4'] = None
         self.CkPt['ck_5'] = None

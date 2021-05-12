@@ -22,6 +22,7 @@ funList = 'Back,Caps,Enter'
 keyBoardFrame = tk.Frame(window)
 
 reader = QrCodeReader()
+reader.show = True
 def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的目標
     global upperBool
     upperBool = False
@@ -109,6 +110,9 @@ def takePic():
         success, camImg = camera.read()  # 從攝像頭讀取照片
         if success:
             cv2.waitKey(1)
+            reader.decode(camImg)
+            data = reader.data
+            camImg = reader.img
             cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
             #blur_img = cv2.medianBlur(cv2image,5)
             imgtk = ImgChang(cv2image)
