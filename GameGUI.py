@@ -11,6 +11,7 @@ import cv2
 from PIL import Image, ImageTk
 from request import Api_request
 
+
 window = tk.Tk()
 window.attributes('-fullscreen',True)
 window.configure(background='#D8D8EB')
