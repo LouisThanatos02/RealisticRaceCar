@@ -19,7 +19,7 @@ class QrCodeReader:
 if __name__ == "__main__":
     DeCoder = QrCodeReader()
     cap = cv2.VideoCapture(0)
-    DeCoder.show = False
+    DeCoder.show = True
     while(1):
         succ, img = cap.read()
         DeCoder.decode(img)
