@@ -26,8 +26,12 @@ loginFrame = tk.Frame(window) #登入的frame
 keyBoardFrame = tk.Frame(window)
 picFrame = tk.Frame(window) #影像的frame
 livFrame = tk.Frame(window) #主頁的frame
-roomFrame = tk.Frame(livFrame)  #房間列表的frame
-funsFrame = tk.Frame(livFrame)  #選項按鈕的frame
+outRoomFrame = tk.Frame(livFrame)
+roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
+funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
+inRoomFrame = tk.Frame(livFrame)
+game_camFrame = tk.Frame(inRoomFrame)#房間內的frame
+game_funsFrame = tk.Frame(inRoomFrame)#房間內選項的frame
 gameFrame = tk.Frame(window)
 
 reader = QrCodeReader()
@@ -35,6 +39,10 @@ reader.show = False
 
 camera = CSI_Camera()
 
+def ImgChang(img):
+    current_image = Image.fromarray(img)#將影象轉換成Image物件
+    imgtk = ImageTk.PhotoImage(image=current_image)
+    return imgtk
 
 def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的目標
     global upperBool
@@ -136,18 +144,12 @@ def takePic():
         global nameImgInsert
         camera.stop()
         camera.release()
-        image_Take.config(state = 'disable')
         picFrame.destroy()
         reImg = cv2.resize(cv2image,(150,110))
         imgtk = ImgChang(reImg)
         nameImgInsert.imgtk = imgtk
         nameImgInsert.config(image=imgtk)
 
-    def ImgChang(img):
-        current_image = Image.fromarray(img)#將影象轉換成Image物件
-        imgtk = ImageTk.PhotoImage(image=current_image)
-        return imgtk
-        
     picFrame.pack(anchor = tk.CENTER)
     image_canvas = tk.Label(picFrame)
     image_canvas.pack(anchor=tk.CENTER)
@@ -219,43 +221,118 @@ def login_gui():
 
 
 def room_view():
-    def joinRoom(id):
-        request.room_id = id
-        request.create_result()
-        request.update_player()
-
-    def showRoom():
-        global roomList,noRoom
-        request.get_rooms()
-        rooms = request.rooms_data
-        roomList = []
-        noRoom = tk.Label(roomFrame,bg='yellow',height = 1,text = '目前沒有房間')
-        if(rooms):
-            for i in rooms:
-                text = '房號 : %s | 房名 : %s | 房主 : %s | 模式 : %s | 房間狀態 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],rooms[i]['mod'],rooms[i]['state'],)
-                roomList.append(tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i)).pack(side = tk.TOP))
-        else:
-            noRoom.pack(side = tk.TOP)
-    
-    def refreshRoom():
-        global noRoom
-        noRoom.pack_forget()
-        roomFrame.grid_forget()
-            
-        showRoom()
 
     def createRoom():
         request.mod_id = 1
         request.create_room()    
         request.create_result()
         request.update_player()
+        clearRoom()
+        gameView()
 
+    def joinRoom(id):
+        request.room_id = id
+        request.create_result()
+        request.update_player()
+        clearRoom()
+        gameView()
+
+    def clearRoom():
+        global noRoom,roomList,createButton,refreshButton
+        noRoom.destroy()
+        for i in range(len(roomList)):
+            roomList[i].destroy()
+        outRoomFrame.pack_forget()
+        createButton.destroy()
+        refreshButton.destroy()
+
+    def refreshRoom():
+        clearRoom()
+        showRoom()
+
+    def showRoom():
+        global noRoom,roomList,createButton,refreshButton
+        request.get_rooms()
+        rooms = request.rooms_data
+
+        outRoomFrame.pack(anchor=tk.CENTER)
+        roomFrame.grid(column=0, row=0, padx=5, pady=5)
+        roomList = []
+        noRoom = tk.Label(roomFrame,bg='yellow',height = 1,text = '目前沒有房間')
+
+        #print(rooms)
+        if(rooms):
+            for i in rooms:
+                text = '房號 : %s | 房名 : %s | 房主 : %s | 模式 : %s | 房間狀態 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],rooms[i]['mod'],rooms[i]['state'],)
+                button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
+                button.pack(side = tk.TOP)
+                roomList.append(button)
+                #print(roomList)
+                
+        else:
+            noRoom.pack(side = tk.TOP)
+
+        funsFrame.grid(column=0, row=1, padx=5, pady=5)
+        createButton = tk.Button(funsFrame,bg='yellow',text = '新增房間', width = 10, height = 2,command = createRoom)
+        createButton.pack(side = tk.LEFT)
+        refreshButton = tk.Button(funsFrame,bg='yellow',text = '重新整理', width = 10, height = 2,command = refreshRoom)
+        refreshButton.pack(side = tk.LEFT)
+    def startEng():
+        #呼叫搖桿控制
+        return
     livFrame.pack(anchor=tk.CENTER)
-    roomFrame.grid(column=0, row=0, padx=5, pady=5)
     showRoom()
-    funsFrame.grid(column=0, row=1, padx=5, pady=5)
-    createButton = tk.Button(funsFrame,bg='yellow',text = '新增房間', width = 6, height = 3,command = createRoom).pack(side = tk.LEFT)
-    refreshButton = tk.Button(funsFrame,bg='yellow',text = '重新整理', width = 6, height = 3,command = refreshRoom).pack(side = tk.LEFT)
+    
+
+def gameView():
+
+    camera.open(0)
+    camera.start()
+    camera.start_counting_fps()
+
+    #kernel = np.ones([5,5],np.float32)/25
+    def video_loop(): #啟動相機迴圈
+        global camImg
+        success, camImg = camera.read()  # 從攝像頭讀取照片
+        cv2.waitKey(1)
+        cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
+        #blur_img = cv2.medianBlur(cv2image,5)
+        imgtk = ImgChang(cv2image)
+        camShow.imgtk = imgtk
+        camShow.config(image=imgtk)
+        inRoomFrame.after(1, video_loop)
+
+    def closeCam():
+        camera.stop()
+        camera.release()
+
+    def leaveRoom():
+        request.room_id = None
+        request.update_player()
+        closeCam()
+        inRoomFrame.pack_forget()
+        """
+        camShow.destroy()
+        readyButt.destroy()
+        leaveButt.destroy()
+        """
+        room_view()
+
+    def ready():
+        return
+
+    
+    inRoomFrame.pack(anchor=tk.CENTER)
+    game_camFrame.grid(column=0, row=0, padx=5, pady=5)
+    camShow = tk.Label(game_camFrame)
+    camShow.pack(anchor=tk.CENTER)
+
+    game_funsFrame.grid(column=0, row=1, padx=5, pady=5)
+    readyButt = tk.Button(game_funsFrame,text='準備就緒',command = ready,bg='yellow')
+    readyButt.pack(side=tk.LEFT)
+    leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
+    leaveButt.pack(side=tk.LEFT)
+    video_loop()
 
 def  exit():
     window.destroy()
