@@ -30,7 +30,8 @@ outRoomFrame = tk.Frame(livFrame)
 roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
 funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
 inRoomFrame = tk.Frame(livFrame)
-game_camFrame = tk.Frame(inRoomFrame)#房間內的frame
+game_camFrame = tk.Frame(inRoomFrame)#房間內相機的frame
+game_codnFrame = tk.Frame(game_camFrame)#準備好倒數的frame
 game_funsFrame = tk.Frame(inRoomFrame)#房間內選項的frame
 gameFrame = tk.Frame(window)
 
@@ -107,7 +108,8 @@ def keyBoard(target,trigger): #trigger 啟動鍵盤的按鈕 , target 輸入的�
             DEF = nameAdd
             KEY = keyList[i]
         #keyLable.append(tk.Label(keyBoardFrame,text=wordList[i],bg='yellow',borderwidth=2,relief='raised', width = 4, height = 2))
-        keyLable.append(tk.Button(keyBoardFrame,text=keyList[i],bg='yellow', width = 6, height = 3,command=partial(DEF,KEY)))
+        keyLable.append(tk.Button(keyBoardFrame,text=keyList[i],bg='yellow', width = 5, height = 2,command=partial(DEF,KEY))) #
+        keyLable[i]['font']= (None, 18, 'italic')
         if(i%10 != 0):
             col += 1
         else:
@@ -131,31 +133,45 @@ def takePic():
     kernel = np.ones([5,5],np.float32)/25
     def video_loop(): #啟動相機迴圈
         global imgtk,cv2image,camImg
-        success, camImg = camera.read()  # 從攝像頭讀取照片
-        cv2.waitKey(1)
-        cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
-        #blur_img = cv2.medianBlur(cv2image,5)
-        imgtk = ImgChang(cv2image)
-        image_canvas.imgtk = imgtk
-        image_canvas.config(image=imgtk)
-        picFrame.after(30, video_loop)
+        try:
+            success, camImg = camera.read()  # 從攝像頭讀取照片
+            cv2.waitKey(1)
+            cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
+            #blur_img = cv2.medianBlur(cv2image,5)
+            imgtk = ImgChang(cv2image)
+            image_canvas.imgtk = imgtk
+            image_canvas.config(image=imgtk)
+            picFrame.after(100, video_loop)
+        except:
+            return
 
     def closeCam():
         global nameImgInsert
         camera.stop()
         camera.release()
-        picFrame.destroy()
+        destroy()
         reImg = cv2.resize(cv2image,(150,110))
         imgtk = ImgChang(reImg)
         nameImgInsert.imgtk = imgtk
         nameImgInsert.config(image=imgtk)
 
-    picFrame.pack(anchor = tk.CENTER)
-    image_canvas = tk.Label(picFrame)
-    image_canvas.pack(anchor=tk.CENTER)
-    image_Take = tk.Button(picFrame,text='拍照',command = closeCam)
-    image_Take.pack(side=tk.TOP)
-    video_loop()
+    def destroy():
+        global picFrame,image_canvas,image_Take
+        picFrame.after_cancel(video_loop)
+        picFrame.pack_forget()
+        image_canvas.destroy()
+        image_Take.destroy()
+
+    def set():
+        global picFrame,image_canvas,image_Take
+        picFrame.pack(anchor = tk.CENTER)
+        image_canvas = tk.Label(picFrame)
+        image_canvas.pack(anchor=tk.CENTER)
+        image_Take = tk.Button(picFrame,text='拍照',command = closeCam)
+        image_Take.pack(side=tk.TOP)
+        video_loop()
+
+    set()
 
 def login_gui():
 
@@ -277,9 +293,11 @@ def room_view():
         createButton.pack(side = tk.LEFT)
         refreshButton = tk.Button(funsFrame,bg='yellow',text = '重新整理', width = 10, height = 2,command = refreshRoom)
         refreshButton.pack(side = tk.LEFT)
+
     def startEng():
         #呼叫搖桿控制
         return
+
     livFrame.pack(anchor=tk.CENTER)
     showRoom()
     
@@ -293,14 +311,25 @@ def gameView():
     #kernel = np.ones([5,5],np.float32)/25
     def video_loop(): #啟動相機迴圈
         global camImg
-        success, camImg = camera.read()  # 從攝像頭讀取照片
-        cv2.waitKey(1)
-        cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
-        #blur_img = cv2.medianBlur(cv2image,5)
-        imgtk = ImgChang(cv2image)
-        camShow.imgtk = imgtk
-        camShow.config(image=imgtk)
-        inRoomFrame.after(1, video_loop)
+        try:
+            success, camImg = camera.read()  # 從攝像頭讀取照片
+            cv2.waitKey(1)
+            cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
+            #blur_img = cv2.medianBlur(cv2image,5)
+            imgtk = ImgChang(cv2image)
+            camShow.imgtk = imgtk
+            camShow.config(image=imgtk)
+            inRoomFrame.after(10, video_loop)
+        except:
+            return
+
+    def destroy():
+        global inRoomFrame,camShow,readyButt,leaveButt
+        inRoomFrame.after_cancel(video_loop)
+        inRoomFrame.pack_forget()
+        camShow.destroy()
+        readyButt.destroy()
+        leaveButt.destroy()
 
     def closeCam():
         camera.stop()
@@ -310,29 +339,51 @@ def gameView():
         request.room_id = None
         request.update_player()
         closeCam()
-        inRoomFrame.pack_forget()
+        destroy()
         """
-        camShow.destroy()
         readyButt.destroy()
         leaveButt.destroy()
         """
         room_view()
 
     def ready():
+        def start():
+            return
+        
+        def counDown(num):
+            count['text'] = num
+            num -= 1
+            if(num > 0):
+                game_codnFrame.after(1000,counDown,num)
+            else:
+                count['text'] = '開始!'
+        countor = 5
+
+        readyButt.config(state = 'disable')
+        #leaveButt.config(state = 'disable')
+
+        game_codnFrame.pack(anchor=tk.CENTER)
+        count = tk.Label(game_codnFrame,text = countor)
+        count.pack(side = tk.TOP,anchor=tk.CENTER)
+        count['font'] = (None, 50, 'italic')
+        counDown(countor)
         return
 
+    def set():
+        global inRoomFrame,camShow,readyButt,leaveButt
+        inRoomFrame.pack(anchor=tk.CENTER)
+        game_camFrame.grid(column=0, row=0, padx=5, pady=5)
+        camShow = tk.Label(game_camFrame)
+        camShow.pack(anchor=tk.CENTER)
     
-    inRoomFrame.pack(anchor=tk.CENTER)
-    game_camFrame.grid(column=0, row=0, padx=5, pady=5)
-    camShow = tk.Label(game_camFrame)
-    camShow.pack(anchor=tk.CENTER)
+        game_funsFrame.grid(column=0, row=1, padx=5, pady=5)
+        readyButt = tk.Button(game_funsFrame,text='準備就緒',command = ready,bg='yellow')
+        readyButt.pack(side=tk.LEFT)
+        leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
+        leaveButt.pack(side=tk.LEFT)
+        video_loop()
 
-    game_funsFrame.grid(column=0, row=1, padx=5, pady=5)
-    readyButt = tk.Button(game_funsFrame,text='準備就緒',command = ready,bg='yellow')
-    readyButt.pack(side=tk.LEFT)
-    leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
-    leaveButt.pack(side=tk.LEFT)
-    video_loop()
+    set()
 
 def  exit():
     window.destroy()
