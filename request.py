@@ -42,66 +42,111 @@ class Api_request:
         data = dict(email = self.email,
                     name = self.name,
                     password = self.password,)
-        self.regist = rqs.post(url = self.register_url,
+        try:
+            self.regist = rqs.post(url = self.register_url,
                                data = data)
-        self.login = rqs.post(url = self.login_url,
+        except:
+            print('設備註冊 : 網路問題')
+        try:
+            self.login = rqs.post(url = self.login_url,
                               data = data)
-        self.get_token()
+        except:
+            print('設備註冊 : 網路問題')
+        try:
+            self.get_token()
+        except:
+            print('權杖解碼 : 解碼問題')
 
     def get_players(self):
         try:
             self.players = rqs.get(url = self.player_all, 
                                    headers = self.headers)
+        except:
+            print('玩家獲取 : 網路問題')
+        try:
             self.players_text = self.json_decode(self.players.text)
+        except:
+            print('玩家獲取 : 解碼問題')
+        try:
             self.players_data = self.players_text['data'][self.player_id]
             print(players_text['reason'])
         except:
-            print('玩家獲取失敗')
+            print('玩家獲取 : print問題')
 
     def get_rooms(self):
         try:
             self.rooms = rqs.get(url = self.room_all, 
                                  headers = self.headers,)
+        except:
+            print('房間獲取 : 網路問題')
+        try:
             self.rooms_text = self.json_decode(self.rooms.text)
+        except:
+            print('房間獲取 : 解碼問題')
+        try:
             self.rooms_data = self.rooms_text['data']
             print(self.rooms_text['reason'])
         except:
-            print('房間獲取失敗')
+            print('房間獲取 : print問題')
 
     def get_results(self):
         try:
             self.results = rqs.get(url = self.result_all, 
                                    headers = self.headers,)
+        except:
+            print('結果獲取 : 網路問題')
+        try:
             self.results_text = self.json_decode(self.results.text)
+        except:
+            print('結果獲取 : 解碼問題')
+        try:
             self.results_data = self.results_text['data']
             print(self.results_text['reason'])
         except:
-            print('結果獲取失敗')
+            print('結果獲取 : print問題')
 
     def get_mods(self):
         try:
             self.mods = rqs.get(url = self.mod_all,
                                 headers = self.headers,)
+        except:
+            print('模式獲取 : 網路問題')
+        try:
             self.mods_text = self.json_decode(self.mods.text)
+        except:
+            print('模式獲取 : 網路問題')
+        try:
             self.mods_data = self.mods_text['data']
             print(self.mods_text['reason'])
         except:
-            print('模式獲取失敗')
+            print('模式獲取: print問題')
 
     def get_qrcodes(self):
         try:
             self.qrcodes = rqs.get(url = self.qrcode_all,
                                 headers = self.headers,)
+        except:
+            print('qrcode獲取 : 網路問題')
+        try:
             self.qrcodes_text = self.json_decode(self.qrcodes.text)
+        except:
+            print('qrcode獲取 : 解碼問題')
+        try:
             self.qrcodes_data = self.qrcodes_text['data']
             print(self.qrcodes_text['reason'])
         except:
-            print('qrcode獲取失敗')
+            print('qrcode獲取 : print問題')
 
     def create_player(self,name_img,car_img): #img must be numpy_array
         data = dict(name = self.name,)
-        name_img = self.img_encode(name_img)
-        car_img = self.img_encode(car_img)
+        try:
+            name_img = self.img_encode(name_img)
+        except:
+            print('玩家創建 : 玩家照片問題')
+        try:
+            car_img = self.img_encode(car_img)
+        except:
+            print('玩家創建 : 車子照片問題')
         files = {'name_img' : name_img,
                  'car_img' : car_img,}
         try:
@@ -110,7 +155,13 @@ class Api_request:
                                           data = data,
                                           headers = self.headers,
                                           files = files,)
+        except:
+            print('玩家創建 : 網路問題')
+        try:
             self.player_create_text = self.json_decode(self.player_create.text)
+        except:
+            print('玩家創建 : 解碼問題')
+        try:
             if(self.player_create_text['status']):
                 self.player_id = self.player_create_text['id']
                 print('你的玩家id : ',self.player_id)
@@ -120,7 +171,7 @@ class Api_request:
             if(self.player_create_text['debug']):
                 print(self.player_create_text['debug'])
         except:
-            print('玩家創建失敗')
+            print('玩家創建 : print問題')
 
     def create_room(self):
         if((self.player_id != '') & (self.mod_id != '')):
@@ -131,7 +182,13 @@ class Api_request:
                 self.room_create = rqs.post(url = self.room_create_url,
                                              data = data,
                                              headers = self.headers,)
+            except:
+                print('房間創建 : 網路問題')
+            try:
                 self.room_create_text = self.json_decode(self.room_create.text)
+            except:
+                print('房間創建 : 解碼問題')
+            try:
                 if(self.room_create_text['status']):
                     self.room_id = self.room_create_text['id']
                     print('你的房間id : ',self.room_id)
@@ -141,18 +198,24 @@ class Api_request:
                 if(self.room_create_text['debug']):
                     print(self.room_create_text['debug'])
             except:
-                print('房間創建失敗')
+                print('房間創建 : print問題')
 
     def create_result(self):
         if((self.player_id != '') & (self.room_id != '')):
+            data = dict(playerID = self.player_id,
+                            roomID = self.room_id,)
             try:
             #if(1):
-                data = dict(playerID = self.player_id,
-                            roomID = self.room_id,)
                 self.result_create = rqs.post(url = self.result_create_url,
                                               data = data,
                                               headers = self.headers,)
+            except:
+                print('結果創建 : 網路問題')
+            try:
                 self.result_create_text = self.json_decode(self.result_create.text)
+            except:
+                print('結果創建 : 解碼問題')
+            try:
                 if(self.result_create_text['status']):
                     self.result_id = self.result_create_text['id']
                     print('你的結果id : ',self.result_id)
@@ -163,7 +226,7 @@ class Api_request:
                     print(self.result_create_text['debug'])
                 
             except:
-                print('結果創建失敗')
+                print('結果創建 : print問題')
     
     def update_player(self):
         data = dict(id = self.player_id
@@ -173,29 +236,44 @@ class Api_request:
                 self.player_updata = rqs.patch(url = self.player_update_url,
                                            data = data,
                                            headers = self.headers,)
+            except:
+                print('玩家修改 : 網路問題')
+            try:
                 self.player_updata_text = self.json_decode(self.player_updata.text)
+            except:
+                print('玩家修改 : 解碼問題')
+            try:
                 if(self.player_updata_text['status']):     
                     print(self.player_updata_text['reason'])
 
                 if(self.player_updata_text['debug']):
                     print(self.player_updata_text['debug'])
             except:
-                print('玩家修改失敗')
+                print('玩家修改 : print問題')
 
     def updata_room(self,state):
         data = dict(id = self.room_id
                     ,state = state)
         if(self.room_id != ''):
             try:
-                self.room_updata = rqs.patch(url = self.room_update_url,
-                                            data = data,
-                                            headers = self.headers,)
-                self.room_updata_text = self.json_decode(self.room_updata.text)
-                if(self.room_updata_text['status']):     
-                    print(self.room_updata_text['reason'])
+                try:
+                    self.room_updata = rqs.patch(url = self.room_update_url,
+                                                data = data,
+                                                headers = self.headers,)
+                except:
+                    print('房間修改 : 網路問題')
+                try:
+                    self.room_updata_text = self.json_decode(self.room_updata.text)
+                except:
+                    print('房間修改 : 網路問題')
+                try:
+                    if(self.room_updata_text['status']):     
+                        print(self.room_updata_text['reason'])
 
-                if(self.room_updata_text['debug']):
-                    print(self.room_updata_text['debug'])
+                    if(self.room_updata_text['debug']):
+                        print(self.room_updata_text['debug'])
+                except:
+                    print('房間修改 : print問題')
             except:
                 print('房間修改失敗')
 
@@ -212,14 +290,20 @@ class Api_request:
                 self.result_updata = rqs.patch(url = self.result_update_url,
                                             data = data,
                                             headers = self.headers,)
+            except:
+                print('結果修改 : 網路問題')
+            try:
                 self.result_updata_text = self.json_decode(self.result_updata.text)
+            except:
+                print('結果修改 : 解碼問題')
+            try:
                 if(self.result_updata_text['status']):     
                     print(self.result_updata_text['reason'])
 
                 if(self.result_updata_text['debug']):
                     print(self.result_updata_text['debug'])
             except:
-                print('結果修改失敗')
+                print('結果修改 : print問題')
 
     def get_token(self):
         login_js = self.json_decode(self.login.text)

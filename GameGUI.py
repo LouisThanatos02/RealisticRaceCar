@@ -340,6 +340,7 @@ def gameView():
         request.update_player()
         closeCam()
         destroy()
+        stop()
         """
         readyButt.destroy()
         leaveButt.destroy()
@@ -347,27 +348,52 @@ def gameView():
         room_view()
 
     def ready():
-        def start():
-            return
         
         def counDown(num):
-            count['text'] = num
-            num -= 1
-            if(num > 0):
-                game_codnFrame.after(1000,counDown,num)
-            else:
+            if((num < 6)&(num > 0)):
+                count['text'] = num
+            elif(num == 0):
                 count['text'] = '開始!'
-        countor = 5
+                start()
+            elif(num == -3):
+                count.destroy()
+                game_codnFrame.after_cancel(counDown)
+                game_codnFrame.pack_forget()
+                return
+            num -= 1
+            game_codnFrame.after(1000,counDown,num)
+        countor = 6
 
         readyButt.config(state = 'disable')
         #leaveButt.config(state = 'disable')
 
         game_codnFrame.pack(anchor=tk.CENTER)
-        count = tk.Label(game_codnFrame,text = countor)
-        count.pack(side = tk.TOP,anchor=tk.CENTER)
+        count = tk.Label(game_codnFrame,text = '準備!!!')
+        count.pack(anchor=tk.CENTER)
         count['font'] = (None, 50, 'italic')
         counDown(countor)
         return
+
+    def start():
+        global camImg,qrFrame
+        qrFrame = tk.Frame()
+        reader.start()
+
+        def qrDecode_loop():
+            reader.img = camImg
+            data = reader.data
+            if(data):
+                print('解碼 : ',data)
+            qrFrame.after(10,qrDecode_loop)
+        qrDecode_loop()
+
+    def stop():
+        try:
+            reader.stop()
+            qrFrame.after_cancel(qrDecode_loop)
+            qrFrame.destroy()
+        except:
+            return
 
     def set():
         global inRoomFrame,camShow,readyButt,leaveButt
@@ -384,6 +410,8 @@ def gameView():
         video_loop()
 
     set()
+
+
 
 def  exit():
     window.destroy()
