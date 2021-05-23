@@ -38,7 +38,7 @@ class QrCodeReader:
                 self.data, self.bbox, _ = self.detector.detectAndDecode(aft_img)
             except:
                 print('no img')
-            time.sleep(0.1)
+            time.sleep(0.01)
 
 if __name__ == "__main__":
     DeCoder = QrCodeReader()

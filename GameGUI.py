@@ -11,6 +11,8 @@ import cv2
 from PIL import Image, ImageTk
 from request import Api_request
 from qrcode import QrCodeReader
+from Timer import Timer
+#import thread_joy as joy
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
@@ -39,6 +41,8 @@ reader = QrCodeReader()
 reader.show = False
 
 camera = CSI_Camera()
+
+timer = Timer()
 
 def ImgChang(img):
     current_image = Image.fromarray(img)#將影象轉換成Image物件
@@ -319,7 +323,7 @@ def gameView():
             imgtk = ImgChang(cv2image)
             camShow.imgtk = imgtk
             camShow.config(image=imgtk)
-            inRoomFrame.after(10, video_loop)
+            inRoomFrame.after(1, video_loop)
         except:
             return
 
@@ -378,13 +382,44 @@ def gameView():
         global camImg,qrFrame
         qrFrame = tk.Frame()
         reader.start()
-
+        def set():
+            global ck
+            ck = [True,True,True,True,True,True]
+        
         def qrDecode_loop():
+            global ck
+            data = None
             reader.img = camImg
-            data = reader.data
+            try:
+                data = reader.data[3]
+            except:
+                print('no code')
             if(data):
                 print('解碼 : ',data)
-            qrFrame.after(10,qrDecode_loop)
+
+            if((data == '1') & ck[0]):
+                timer.getTime()
+                ck[0] = False
+            elif((data == '2') & ck[1]):
+                timer.getTime()
+                ck[1] = False
+            elif((data == '3') & ck[2]):
+                timer.getTime()
+                ck[2] = False
+            elif((data == '4') & ck[3]):
+                timer.getTime()
+                ck[3] = False
+            elif((data == '5') & ck[4]):
+                timer.getTime()
+                ck[4] = False
+            elif((data == 'e') & ck[5]):
+                timer.getTime()
+                ck[5] = False
+                timer.getAll()
+                stop()
+            print(ck)
+            qrFrame.after(2,qrDecode_loop)
+        set()
         qrDecode_loop()
 
     def stop():
@@ -397,6 +432,7 @@ def gameView():
 
     def set():
         global inRoomFrame,camShow,readyButt,leaveButt
+
         inRoomFrame.pack(anchor=tk.CENTER)
         game_camFrame.grid(column=0, row=0, padx=5, pady=5)
         camShow = tk.Label(game_camFrame)
@@ -414,6 +450,7 @@ def gameView():
 
 
 def  exit():
+    #jy.stop()
     window.destroy()
 
 testFrame = tk.Frame(window) #測試用的frame
@@ -424,5 +461,9 @@ button_lev.pack(anchor =tk.SE)
 
 if __name__ == "__main__":
     request = Api_request()
+    """jy = joy.ThreadedInputs()
+    for gamepadInput in joy.gamepadInputs:
+        jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
+    jy.start()"""
     login_gui()
     window.mainloop()

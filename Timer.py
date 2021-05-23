@@ -12,11 +12,31 @@ class Timer:
         #print(self.times[-1] - self.times[0])
 
     def getAll(self):
-        for i in self.times :
-            if(i != 0):
-                self.times_ch.append(i - self.times[0])
-        #print(self.times_ch)
-        
+        self.times_ch = []
+        for i in range(len(self.times)) :
+            math = self.times[i] - self.times[0]
+            min = int(math.seconds/60)
+            if(min < 10):
+                min_str = '0'+str(min)
+            else:
+                min_str = str(min)
+
+            sec = math.seconds%60
+            if(sec < 10):
+                sec_str = '0'+str(sec)
+            else:
+                sec_str = str(sec)
+
+            milli = int(math.microseconds/10000)
+            if(milli < 10):
+                milli_str = '0'+str(milli)
+            else:
+                milli_str = str(milli)
+
+            self.times_ch.append(min_str +':'+ sec_str +'.'+ milli_str)
+        print(self.times_ch)
+        return self.times_ch
+         
     def reset(self):
         self.times = []
         self.times_ch = [] 

@@ -16,6 +16,7 @@ import threading
 import queue
 import time
 import math
+import mouse
 
 from inputs import get_gamepad
 
@@ -50,6 +51,8 @@ class ThreadedInputs:
 		self.lastEventCode = self.NOMATCH
 		# Initialise the thread status flag
 		self.stopped = False
+		self.servo_run = True
+		self.motor_run = True
 		self.q = queue.LifoQueue()
 		"""self.gamepadInputs = {
 				'ABS_Y': 128, 
@@ -61,16 +64,15 @@ class ThreadedInputs:
 
 	def start(self):
 		# Start the thread to poll gamepad event updates
-		t = threading.Thread(target=self.gamepad_update, args=())
-		t2 = threading.Thread(target=self.servo_control, args=())
-		t3 = threading.Thread(target=self.motor_control, args=())
-		t.daemon = True
-		t2.daemon = True
-		t3.daemon = True
-		t.start()
-		t2.start()
-		t3.start()
-		
+		self.read_th = threading.Thread(target=self.gamepad_update, args=())
+		self.servo_th = threading.Thread(target=self.servo_control, args=())
+		self.motor_th = threading.Thread(target=self.motor_control, args=())
+
+		self.read_th.daemon = True
+		self.servo_th.daemon = True
+		self.motor_th.daemon = True
+
+		self.read_th.start()
 		
 	def gamepad_update(self):
 		while True:
@@ -128,50 +130,57 @@ class ThreadedInputs:
 		old_RX = 128
 		
 		while 1:
-			RX = self.command_value('ABS_Z')
-			if(RX-old_RX != 0):
-				if(RX !=128):
-					angel = math.floor((RX-(-js_left))/(js_right)*(section-1)+0.5)
-					t_angel = DC_lut[angel]
-					if(math.fabs(t_angel-old_angel)>0.01):
-						servo.ChangeDutyCycle(t_angel)
-						#print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
+			if(self.servo_run):
+				RX = self.command_value('ABS_Z')
+				if(RX-old_RX != 0):
+					if(RX !=128):
+						angel = math.floor((RX-(-js_left))/(js_right)*(section-1)+0.5)
+						t_angel = DC_lut[angel]
+						if(math.fabs(t_angel-old_angel)>0.01):
+							servo.ChangeDutyCycle(t_angel)
+							#print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
 						
-					old_angel = t_angel
-				else:
-					servo.ChangeDutyCycle(15)
-					#print("現在方位 : 中間")
+						old_angel = t_angel
+					else:
+						servo.ChangeDutyCycle(15)
+						#print("現在方位 : 中間")
+				old_RX = RX
+			if self.stopped:
+				return
 			time.sleep(0.01)
-			old_RX = RX
+			
 
 	def motor_control(self):
 		# Function to drive robot motors
 		old_LY = 128
 		while 1:
-			LY = self.command_value('ABS_Y')
-			ly = LY - 128
-			if(LY-old_LY != 0):
-				if(LY != 128):
-					if(LY < 128):
-						GPIO.output(forwardPin,1)
-						GPIO.output(backwardPin,0)
-						ly = -ly
-						#print("前進")
+			if(self.motor_run):
+				LY = self.command_value('ABS_Y')
+				ly = LY - 128
+				if(LY-old_LY != 0):
+					if(LY != 128):
+						if(LY < 128):
+							GPIO.output(forwardPin,1)
+							GPIO.output(backwardPin,0)
+							ly = -ly
+							#print("前進")
+						else:
+							GPIO.output(forwardPin,0)
+							GPIO.output(backwardPin,1)
+							#print("後退")
+						speed = int(ly/0.128)/10
+						#print("速度:",speed)
+						time.sleep(0.08)
+						motor.ChangeDutyCycle(speed)
+						#print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
 					else:
 						GPIO.output(forwardPin,0)
-						GPIO.output(backwardPin,1)
-						#print("後退")
-					speed = int(ly/0.128)/10
-					#print("速度:",speed)
-					time.sleep(0.08)
-					motor.ChangeDutyCycle(speed)
-					#print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
-				else:
-					GPIO.output(forwardPin,0)
-					GPIO.output(backwardPin,0)
-					motor.ChangeDutyCycle(40)
+						GPIO.output(backwardPin,0)
+						motor.ChangeDutyCycle(40)
 			
-			old_LY = LY
+				old_LY = LY
+			if self.stopped:
+				return
 			time.sleep(0.03)
 			
 
