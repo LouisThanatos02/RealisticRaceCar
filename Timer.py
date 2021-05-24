@@ -34,7 +34,7 @@ class Timer:
                 milli_str = str(milli)
 
             self.times_ch.append(min_str +':'+ sec_str +'.'+ milli_str)
-        print(self.times_ch)
+        #print(self.times_ch)
         return self.times_ch
          
     def reset(self):

@@ -10,6 +10,7 @@ class QrCodeReader:
         self.show = False
         self.data = None
         self.running = False
+        self.get_lock = threading.Lock()
         self.detector = cv2.QRCodeDetector()
         self.t1 = threading.Thread(target = self.decode)
         self.t1.daemon = True
@@ -33,12 +34,12 @@ class QrCodeReader:
             try:
                 gray_img = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
                 #aft_img = cv2.threshold(gray_img, 100, 170, cv2.THRESH_BINARY)
-                aft_img = self.sharpen(gray_img)
-                #aft_img = gray_img
+                #aft_img = self.sharpen(gray_img)
+                aft_img = gray_img
                 self.data, self.bbox, _ = self.detector.detectAndDecode(aft_img)
             except:
-                print('no img')
-            time.sleep(0.01)
+                print('no img',end = '\r')
+            time.sleep(0.001)
 
 if __name__ == "__main__":
     DeCoder = QrCodeReader()
