@@ -37,12 +37,18 @@ game_CkPtFrame = tk.Frame(window)
 game_camFrame = tk.Frame(inRoomFrame)#房間內相機的frame
 game_funsFrame = tk.Frame(inRoomFrame)#房間內選項的frame
 
+chack = tk.Frame()
+
 reader = QrCodeReader()
 reader.show = False
 
 camera = CSI_Camera()
 
 timer = Timer()
+
+img_chack = False
+name_chack = False
+run = True
 
 def ImgChang(img):
     current_image = Image.fromarray(img)#將影象轉換成Image物件
@@ -150,7 +156,7 @@ def takePic():
             return
 
     def closeCam():
-        global nameImgInsert
+        global nameImgInsert,img_chack
         camera.stop()
         camera.release()
         destroy()
@@ -158,6 +164,7 @@ def takePic():
         imgtk = ImgChang(reImg)
         nameImgInsert.imgtk = imgtk
         nameImgInsert.config(image=imgtk)
+        img_chack = True
 
     def destroy():
         global picFrame,image_canvas,image_Take
@@ -177,19 +184,24 @@ def takePic():
 
     set()
 
+
+
 def login_gui():
+    global nameImgInsert,nameInsert,loginFrame,insertConfn,chack
 
     def register():
-        global imgtk,camImg
+        global imgtk,camImg,run
         request.name = nameInsert['text']
         request.register()
         name_img = camImg
         car_img = cv2.imread('./img/moje.jpg')
         request.create_player(name_img,car_img)
         loginFrame.place_forget()
+        run = False
+        chack.after_cancel(login_chack)
+        chack.destroy()
         room_view()
 
-    global nameImgInsert,nameInsert,loginFrame
     loginFrame.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
 
     loginTittle = tk.Label(loginFrame,text='註冊',width=15,height=2)
@@ -215,30 +227,27 @@ def login_gui():
     
     insertConfn = tk.Button(insertFrame,text='確認註冊',width=12,height=1,bg='yellow',borderwidth=2,relief='raised',command = register)
     insertConfn.pack(anchor=tk.CENTER)
-    
-    
-    """
-    def login_chack():
-        loginChackFrame = tk.Frame(window)
-        loginChackFrame.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
+    insertConfn['state'] = 'disable'
 
-        yourName = tk.Label(loginChackFrame,text='你的名字 : ',width=20,bg='yellow',borderwidth=2,relief='raised')
-        yourName.grid(column=0, row=0, padx=5, pady=5)
-        yourName['text'] += nameInsert['text']
+    login_chack()
 
-        yourPicLab = tk.Label(loginChackFrame,text='你的照片 : ',width=20,bg='yellow',borderwidth=2,relief='raised')
-        yourPicLab.grid(column=0, row=0, padx=5, pady=5)
+def login_chack():
+    global name_chack,img_chack,insertConfn,run
 
-        yourPic = tk.Label(loginChackFrame)
-        yourPic.grid(column=0, row=0, padx=5, pady=5)
+    if(nameInsert['text'] != ''):
+        name_chack = True
+    else:
+        name_chack = False
 
-        playerPic = nameImgInsert['image']
-        yourPic.imgtk = playerPic
-        yourPic.config(image=playerPic)
-    """
-
-    
-
+    if(img_chack & name_chack):
+        insertConfn['state'] = 'active'
+    else:
+        insertConfn['state'] = 'disable'
+    if(run):
+        chack.after(1,login_chack)
+    else:
+        return
+        
 
 def room_view():
 
@@ -281,7 +290,7 @@ def room_view():
             server_state = ''
         except:
             rooms = None
-            server_state = '，伺服器沒有連線，請重新啟動'
+            server_state = '，伺服器沒有連線，只可進行單機遊戲，如需要多人，請重新啟動'
 
         outRoomFrame.pack(anchor=tk.CENTER)
         roomFrame.grid(column=0, row=0, padx=5, pady=5)
@@ -356,10 +365,12 @@ def gameView():
             print('伺服器沒有連線，請重新啟動')
         closeCam()
         destroy()
-        """
-        readyButt.destroy()
-        leaveButt.destroy()
-        """
+        try:
+            for i in range(len(Ck_lab)):
+                Ck_lab[i].destroy()
+                game_CkPtFrame.destroy() 
+        except:
+            pass
         room_view()
 
     def ready():
@@ -397,7 +408,7 @@ def gameView():
             global ck_name,ck_bool,ck_time
             ck_name = ['1','2','3','4','5','終',]
             ck_bool = [True,True,True,True,True,True]
-            ck_time = [0,0,0,0,0,0]
+            ck_time = [':',':',':',':',':',':',]
             time_list = get_time()
             Ck_label()
             qrDecode_loop()
@@ -411,7 +422,7 @@ def gameView():
             game_CkPtFrame.pack(anchor = tk.N)
             Ck_lab = []
             for i in range(len(ck_bool)):
-                label = tk.Label(game_CkPtFrame,bg = 'red', width = 2, height = 1)
+                label = tk.Label(game_CkPtFrame,bg = 'red', width = 10, height = 1)
                 label['font'] = (None, 20, 'italic')
                 label['text'] = ck_name[i]
                 label.grid(column=i, row=0, padx=5, pady=5)
@@ -420,10 +431,10 @@ def gameView():
         def do(id):
             global ck_bool,Ck_lab,ck_time
             if(ck_bool[int(id)-1]):
-                ck_bool[int(id)-1] = False
-                Ck_lab[int(id)-1].config( bg = 'green')
                 time_list = get_time()
                 ck_time[int(id)-1] = time_list[int(id)]
+                ck_bool[int(id)-1] = False
+                Ck_lab[int(id)-1].config(bg = 'green',text = ck_time[int(id)-1])
                 request.CkPt['ck_'+id] = ck_time[int(id)-1]
                 try:
                     request.updata_result()
@@ -442,18 +453,19 @@ def gameView():
                 print('no code',end = '\r')
 
             if((data == 'e') & ck_bool[5]):
-                ck_bool[5] = False
-                Ck_lab[5]['bg'] = 'green'
                 time_list = get_time()
-                ckE = time_list[6]
-                request.CkPt['ck_end'] = ckE
+                ck_time[5] = time_list[6]
+                ck_bool[5] = False
+                Ck_lab[5].config(bg = 'green',text = ck_time[5])
+                request.CkPt['ck_end'] = ck_time[5]
                 try:
                     request.updata_result()
                 except:
                     print('伺服器沒有連線，請重新啟動')
                 timer.reset()
-                print('ckE =',ckE)
-                stop()
+                print('ckE =',ck_time[5])
+                run = False
+                leaveButt.config(state = 'active')
             else:
                 try:
                     do(data)
@@ -466,24 +478,21 @@ def gameView():
             if(run is not True):
                 reader.stop()
                 game_CkPtFrame.after_cancel(qrDecode_loop)
-                for i in range(len(Ck_lab)):
-                    Ck_lab[i].destroy()
-                game_CkPtFrame.destroy()  
+                return
             else:
                 game_CkPtFrame.after(1,qrDecode_loop)
+            
         set()  
 
     def show_result():
+        global ck_time
         try:
             request.get_results()
             data = request.results_data
         except:
             print('伺服器沒有連線，請重新啟動')
         
-    def stop():
-        global run
-        run = False
-        leaveButt.config(state = 'active')
+    
 
     def set():
         global inRoomFrame,camShow,readyButt,leaveButt
