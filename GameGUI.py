@@ -192,6 +192,7 @@ def login_gui():
     def register():
         global imgtk,camImg,run
         request.name = nameInsert['text']
+        request.set_email()
         request.register()
         name_img = camImg
         car_img = cv2.imread('./img/moje.jpg')
@@ -200,7 +201,19 @@ def login_gui():
         run = False
         chack.after_cancel(login_chack)
         chack.destroy()
+        destory()
         room_view()
+    
+    def destory():
+        loginFrame.destroy()
+        loginTittle.destroy()
+        inputFrame.destroy()
+        nameTittle.destroy()
+        nameInsert.destroy()
+        nameImgTittle.destroy()
+        nameImgInsert.destroy()
+        insertFrame.destroy()
+        insertConfn.destroy()
 
     loginFrame.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
 
@@ -259,17 +272,17 @@ def room_view():
             request.update_player()
         except:
             print('伺服器沒有連線，請重新啟動')
-        clearRoom()
+        destroy()
         gameView()
 
     def joinRoom(id):
         request.room_id = id
         request.create_result()
         request.update_player()
-        clearRoom()
+        destroy()
         gameView()
 
-    def clearRoom():
+    def destroy():
         global noRoom,roomList,createButton,refreshButton
         noRoom.destroy()
         for i in range(len(roomList)):
@@ -279,7 +292,7 @@ def room_view():
         refreshButton.destroy()
 
     def refreshRoom():
-        clearRoom()
+        destroy()
         showRoom()
 
     def showRoom():
@@ -371,6 +384,7 @@ def gameView():
                 game_CkPtFrame.destroy() 
         except:
             pass
+
         room_view()
 
     def ready():
@@ -388,6 +402,7 @@ def gameView():
                 return
             num -= 1
             game_codnFrame.after(1000,counDown,num)
+        
         countor = 6
 
         readyButt.config(state = 'disable')
@@ -437,7 +452,7 @@ def gameView():
                 Ck_lab[int(id)-1].config(bg = 'green',text = ck_time[int(id)-1])
                 request.CkPt['ck_'+id] = ck_time[int(id)-1]
                 try:
-                    request.updata_result()
+                    request.update_result()
                 except:
                     print('伺服器沒有連線，請重新啟動')
                 print('ck'+id,'=',ck_time[int(id)-1])
@@ -459,7 +474,7 @@ def gameView():
                 Ck_lab[5].config(bg = 'green',text = ck_time[5])
                 request.CkPt['ck_end'] = ck_time[5]
                 try:
-                    request.updata_result()
+                    request.update_result()
                 except:
                     print('伺服器沒有連線，請重新啟動')
                 timer.reset()

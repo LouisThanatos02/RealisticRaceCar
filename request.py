@@ -6,8 +6,9 @@ from csi_camera import CSI_Camera
 class Api_request:
     
     def __init__(self):
-        self.name = 'abc'
-        self.email = self.name +'@gm.lhu.edu.tw'
+        self.name = None
+        self.email = None
+        self.domain = '@gm.lhu.edu.tw'
         self.password = self.name + 'pwd1234'
         self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
         self.register_url = self.base_url+'register'    #post
@@ -29,15 +30,31 @@ class Api_request:
         self.result_update_url = self.base_url+'results/update'
         #CkPt
         self.CkPt = {}
-        self.CkPt['ck_1'] = None  #mm:ss.micsec
+        self.CkPt['ck_1'] = None  #mm:ss.mill(10)
         self.CkPt['ck_2'] = None
         self.CkPt['ck_3'] = None
         self.CkPt['ck_4'] = None
         self.CkPt['ck_5'] = None
         self.CkPt['ck_end'] = None
+        #room state 房間狀態
+        self.state_playing = 'P'
+        self.state_close = 'C'
+        #result state 房間內的玩家狀態
+        self.state_ready = 'R'
+        self.state_leave = 'L'
+        #共用state
+        self.state_wait = 'W'
+        self.state_finish = 'F'
+    
+        self.reset()
 
+    def set_email(self):
+        self.email = self.name + self.domain
+
+    def reset(self):
+        self.room_state = self.state_wait
+        self.result_state = self.state_wait
         
-
     def register(self):
         data = dict(email = self.email,
                     name = self.name,
@@ -203,7 +220,7 @@ class Api_request:
     def create_result(self):
         if((self.player_id != '') & (self.room_id != '')):
             data = dict(playerID = self.player_id,
-                            roomID = self.room_id,)
+                        roomID = self.room_id,)
             try:
             #if(1):
                 self.result_create = rqs.post(url = self.result_create_url,
@@ -251,9 +268,9 @@ class Api_request:
             except:
                 print('玩家修改 : print問題')
 
-    def updata_room(self,state):
+    def update_room(self):
         data = dict(id = self.room_id
-                    ,state = state)
+                    ,state = self.room_state)
         if(self.room_id != ''):
             try:
                 try:
@@ -277,8 +294,9 @@ class Api_request:
             except:
                 print('房間修改失敗')
 
-    def updata_result(self,):
+    def update_result(self,):
         data = dict(id = self.result_id,
+                    state = self.result_state,
                     ck_1 = self.CkPt['ck_1'],
                     ck_2 = self.CkPt['ck_2'],
                     ck_3 = self.CkPt['ck_3'],
