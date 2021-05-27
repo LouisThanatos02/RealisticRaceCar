@@ -9,7 +9,7 @@ class Api_request:
         self.name = None
         self.email = None
         self.domain = '@gm.lhu.edu.tw'
-        self.password = self.name + 'pwd1234'
+        self.def_pwd = 'pwd1234'
         self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
         self.register_url = self.base_url+'register'    #post
         self.login_url =  self.base_url+'login'         #post
@@ -50,6 +50,7 @@ class Api_request:
 
     def set_email(self):
         self.email = self.name + self.domain
+        self.password = self.name + self.def_pwd
 
     def reset(self):
         self.room_state = self.state_wait
