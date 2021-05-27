@@ -245,7 +245,7 @@ class Api_request:
             except:
                 print('結果創建 : print問題')
     
-    def update_player(self):
+    """def update_player(self):
         data = dict(id = self.player_id
                     ,roomID = self.room_id)
         if(self.player_id != ''):
@@ -266,7 +266,7 @@ class Api_request:
                 if(self.player_updata_text['debug']):
                     print(self.player_updata_text['debug'])
             except:
-                print('玩家修改 : print問題')
+                print('玩家修改 : print問題')"""
 
     def update_room(self):
         data = dict(id = self.room_id
