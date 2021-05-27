@@ -16,7 +16,7 @@ import threading
 import queue
 import time
 import math
-import mouse
+import pyautogui as mouse
 
 from inputs import get_gamepad
 
@@ -54,12 +54,8 @@ class ThreadedInputs:
 		self.servo_run = True
 		self.motor_run = True
 		self.q = queue.LifoQueue()
-		"""self.gamepadInputs = {
-				'ABS_Y': 128, 
-				'ABS_Z': 128, 
-				'BTN_SOUTH': 0, 
-				'BTN_WEST': 0,
-				'BTN_START': 0}"""
+		self.width,self.height = mouse.size()
+		mouse.moveTo(self.width/2,self.height/2)
 		
 
 	def start(self):
@@ -67,12 +63,21 @@ class ThreadedInputs:
 		self.read_th = threading.Thread(target=self.gamepad_update, args=())
 		self.servo_th = threading.Thread(target=self.servo_control, args=())
 		self.motor_th = threading.Thread(target=self.motor_control, args=())
+		self.mouse_XP_th = threading.Thread(target=self.mouse_XP_control, args=())
+		self.mouse_YP_th = threading.Thread(target=self.mouse_YP_control, args=())
+		self.mouse_C_th = threading.Thread(target=self.mouse_C_control, args=())
 
 		self.read_th.daemon = True
 		self.servo_th.daemon = True
 		self.motor_th.daemon = True
+		self.mouse_XP_th.daemon = True
+		self.mouse_YP_th.daemon = True
+		self.mouse_C_th.daemon = True
 
 		self.read_th.start()
+		self.mouse_XP_th.start()
+		self.mouse_YP_th.start()
+		self.mouse_C_th.start()
 		
 	def gamepad_update(self):
 		while True:
@@ -183,7 +188,46 @@ class ThreadedInputs:
 				return
 			time.sleep(0.03)
 			
+	def mouse_XP_control(self):
+		#old_X= 0
+		while 1:
+			hat_X = self.command_value('ABS_HAT0X')
+			#if(old_X != hat_X):
+			if(1):
+				if(hat_X > 0):
+					mouse.moveRel(20,0)
+				elif(hat_X < 0):
+					mouse.moveRel(-20,0)
+				#print(hat_X)
+				#old_X = hat_X
+			time.sleep(0.003)
 
+	def mouse_YP_control(self):
+		#old_Y= 0
+		while 1:
+			hat_Y = self.command_value('ABS_HAT0Y')
+			#if(old_Y != hat_Y):
+			if(1):
+				if(hat_Y > 0):
+					mouse.moveRel(0,20)
+				elif(hat_Y < 0):
+					mouse.moveRel(0,-20)
+				#print(hat_Y)
+				#old_Y = hat_Y
+			time.sleep(0.003)
+
+	def mouse_C_control(self):
+		old_A = 0
+		while 1:
+			btn_A = self.command_value('BTN_SOUTH')
+			if(old_A != btn_A):
+				if(btn_A == 1):
+					mouse.mouseDown()
+				elif(btn_A == 0):
+					mouse.mouseUp()
+				#print(btn_A)
+				old_A = btn_A
+			time.sleep(0.003)
 #def fire_nerf_dart(commandInput, commandValue):
 	# Function to fire Nerf dart gun on the robot
 	#print('Fire Nerf Dart -> {} Value -> {}'.format(commandInput, commandValue))
@@ -214,7 +258,7 @@ gamepadInputs = {
 				'ABS_Y': 128, 
 				'ABS_Z': 128, 
 				'BTN_SOUTH': 0, 
-				'BTN_WEST': 0,
+				'BTN_B': 0,
 				'BTN_START': 0,
 				'ABS_HAT0X' : 0,
 				'ABS_HAT0Y' : 0,

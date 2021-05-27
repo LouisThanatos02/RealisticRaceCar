@@ -49,7 +49,7 @@ CAPTURE_WIDTH=1660
 CAPTURE_HIEGHT=1100
 DISPLAY_WIDTH=1920
 DISPLAY_HEIGHT=1080
-FARMERATE=25
+FARMERATE=30
 
 
 # 1920x1080, 30 fps
@@ -108,5 +108,7 @@ if __name__ == "__main__":
     for gamepadInput in joy.gamepadInputs:
         jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
     jy.start()
+    jy.servo_th.start()
+    jy.motor_th.start()
     start_cameras()
 

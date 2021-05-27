@@ -12,7 +12,7 @@ from PIL import Image, ImageTk
 from request import Api_request
 from qrcode import QrCodeReader
 from Timer import Timer
-#import thread_joy as joy
+import thread_joy as joy
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
@@ -43,6 +43,20 @@ reader = QrCodeReader()
 reader.show = False
 
 camera = CSI_Camera()
+CAPTURE_WIDTH=1660
+CAPTURE_HIEGHT=1100
+DISPLAY_WIDTH=1660
+DISPLAY_HEIGHT=960
+FARMERATE=20
+camera.create_gstreamer_pipeline(
+            capture_width=CAPTURE_WIDTH,
+            capture_height=CAPTURE_HIEGHT,
+            framerate=FARMERATE,
+            flip_method=0,
+            display_height=DISPLAY_HEIGHT,
+            display_width=DISPLAY_WIDTH,
+    )
+pipeline = camera.gstreamer_pipeline
 
 timer = Timer()
 
@@ -136,9 +150,8 @@ def keyBoardClose(key,trigger):
     trigger.config(state = 'active')
 
 def takePic():
-    camera.open(0)
+    camera.open(pipeline)
     camera.start()
-    camera.start_counting_fps()
 
     kernel = np.ones([5,5],np.float32)/25
     def video_loop(): #啟動相機迴圈
@@ -151,7 +164,7 @@ def takePic():
             imgtk = ImgChang(cv2image)
             image_canvas.imgtk = imgtk
             image_canvas.config(image=imgtk)
-            picFrame.after(100, video_loop)
+            picFrame.after(10, video_loop)
         except:
             return
 
@@ -269,16 +282,18 @@ def room_view():
         try:
             request.create_room()    
             request.create_result()
-            request.update_player()
         except:
             print('伺服器沒有連線，請重新啟動')
+        startEng()
         destroy()
         gameView()
 
     def joinRoom(id):
         request.room_id = id
         request.create_result()
-        request.update_player()
+         jy.servo_run = True
+        jy.motor_run = True
+        startEng()
         destroy()
         gameView()
 
@@ -331,6 +346,8 @@ def room_view():
 
     def startEng():
         #呼叫搖桿控制
+        jy.servo_th.start()
+        jy.motor_th.start()
         return
 
     livFrame.pack(anchor=tk.CENTER)
@@ -339,9 +356,8 @@ def room_view():
 
 def gameView():
 
-    camera.open(0)
+    camera.open(pipeline)
     camera.start()
-    camera.start_counting_fps()
 
     #kernel = np.ones([5,5],np.float32)/25
     def video_loop(): #啟動相機迴圈
@@ -373,9 +389,11 @@ def gameView():
     def leaveRoom():
         request.room_id = None
         try:
-            request.update_player()
+            request.update_result()
         except:
             print('伺服器沒有連線，請重新啟動')
+        jy.servo_run = False
+        jy.motor_run = False
         closeCam()
         destroy()
         try:
@@ -414,7 +432,10 @@ def gameView():
         count['font'] = (None, 50, 'italic')
         counDown(countor)
         return
-
+    
+    def unready():
+        return
+        
     def start():
         global camImg,qrFrame,run
         reader.start()
@@ -529,7 +550,12 @@ def gameView():
 
 
 def  exit():
-    #jy.stop()
+    try:
+        jy.stop()
+        camera.stop()
+        camera.release()
+    except:
+        pass
     window.destroy()
 
 testFrame = tk.Frame(window) #測試用的frame
@@ -540,9 +566,9 @@ button_lev.pack(anchor =tk.SE)
 
 if __name__ == "__main__":
     request = Api_request()
-    """jy = joy.ThreadedInputs()
+    jy = joy.ThreadedInputs()
     for gamepadInput in joy.gamepadInputs:
         jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
-    jy.start()"""
+    jy.start()
     login_gui()
     window.mainloop()
