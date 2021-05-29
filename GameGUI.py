@@ -278,7 +278,6 @@ def room_view():
     def joinRoom(id):
         request.room_id = id
         request.create_result()
-        request.update_player()
         destroy()
         gameView()
 
