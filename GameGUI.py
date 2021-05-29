@@ -12,7 +12,10 @@ from PIL import Image, ImageTk
 from request import Api_request
 from qrcode import QrCodeReader
 from Timer import Timer
-import thread_joy as joy
+try:
+    import thread_joy as joy
+except:
+    pass
 
 window = tk.Tk()
 window.attributes('-fullscreen',True)
@@ -28,12 +31,12 @@ loginFrame = tk.Frame(window) #登入的frame
 keyBoardFrame = tk.Frame(window)
 picFrame = tk.Frame(window) #影像的frame
 livFrame = tk.Frame(window) #主頁的frame
-outRoomFrame = tk.Frame(livFrame)
-roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
-funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
-inRoomFrame = tk.Frame(livFrame)
 game_codnFrame = tk.Frame(window)#準備好倒數的frame
 game_CkPtFrame = tk.Frame(window)
+outRoomFrame = tk.Frame(window)
+roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
+funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
+inRoomFrame = tk.Frame(window)
 game_camFrame = tk.Frame(inRoomFrame)#房間內相機的frame
 game_funsFrame = tk.Frame(inRoomFrame)#房間內選項的frame
 
@@ -56,7 +59,8 @@ camera.create_gstreamer_pipeline(
             display_height=DISPLAY_HEIGHT,
             display_width=DISPLAY_WIDTH,
     )
-pipeline = camera.gstreamer_pipeline
+#pipeline = camera.gstreamer_pipeline
+pipeline = 0
 
 timer = Timer()
 
@@ -173,7 +177,10 @@ def takePic():
         camera.stop()
         camera.release()
         destroy()
-        reImg = cv2.resize(cv2image,(150,110))
+        try:
+            reImg = cv2.resize(cv2image,(150,110))
+        except:
+            pass
         imgtk = ImgChang(reImg)
         nameImgInsert.imgtk = imgtk
         nameImgInsert.config(image=imgtk)
@@ -191,8 +198,8 @@ def takePic():
         picFrame.pack(anchor = tk.CENTER)
         image_canvas = tk.Label(picFrame)
         image_canvas.pack(anchor=tk.CENTER)
-        image_Take = tk.Button(picFrame,text='拍照',command = closeCam)
-        image_Take.pack(side=tk.TOP)
+        image_Take = tk.Button(picFrame,text='拍照',command = closeCam,width = 4,height = 2,bg = 'yellow')
+        image_Take.pack(anchor=tk.CENTER)
         video_loop()
 
     set()
@@ -273,7 +280,6 @@ def login_chack():
         chack.after(1,login_chack)
     else:
         return
-        
 
 def room_view():
 
@@ -284,19 +290,22 @@ def room_view():
             request.create_result()
         except:
             print('伺服器沒有連線，請重新啟動')
-        startEng()
+        try:
+            startEng()
+        except:
+            pass
         destroy()
         gameView()
 
     def joinRoom(id):
         request.room_id = id
         request.create_result()
-<<<<<<< HEAD
-=======
-         jy.servo_run = True
-        jy.motor_run = True
-        startEng()
->>>>>>> 0cc33012d055e8d71e34224842b08bae1e8c8b1a
+        try:
+            jy.servo_run = True
+            jy.motor_run = True
+            startEng()
+        except:
+            pass
         destroy()
         gameView()
 
@@ -353,9 +362,8 @@ def room_view():
         jy.motor_th.start()
         return
 
-    livFrame.pack(anchor=tk.CENTER)
+    #livFrame.pack(anchor=tk.CENTER)
     showRoom()
-    
 
 def gameView():
 
@@ -395,8 +403,11 @@ def gameView():
             request.update_result()
         except:
             print('伺服器沒有連線，請重新啟動')
-        jy.servo_run = False
-        jy.motor_run = False
+        try:    
+            jy.servo_run = False
+            jy.motor_run = False
+        except:
+            pass
         closeCam()
         destroy()
         try:
@@ -429,7 +440,7 @@ def gameView():
         readyButt.config(state = 'disable')
         leaveButt.config(state = 'disable')
 
-        game_codnFrame.pack(anchor=tk.N)
+        game_codnFrame.pack(side=tk.TOP)
         count = tk.Label(game_codnFrame,text = '準備!!!')
         count.pack(anchor=tk.CENTER)
         count['font'] = (None, 50, 'italic')
@@ -443,22 +454,20 @@ def gameView():
         global camImg,qrFrame,run
         reader.start()
         run = True
+
         def set():
             global ck_name,ck_bool,ck_time
-            ck_name = ['1','2','3','4','5','終',]
-            ck_bool = [True,True,True,True,True,True]
-            ck_time = [':',':',':',':',':',':',]
-            time_list = get_time()
+            ck_name = ['始','1','2','3','4','5','終',]
+            ck_bool = [True,True,True,True,True,True,True]
+            ck_time = [':',':',':',':',':',':',':',]
             Ck_label()
+            timer.set()
+            do('s')
             qrDecode_loop()
-
-        def get_time():
-            timer.getTime()
-            return timer.getAll()
 
         def Ck_label():
             global ck_name,ck_bool,Ck_lab
-            game_CkPtFrame.pack(anchor = tk.N)
+            game_CkPtFrame.pack(side = tk.TOP)
             Ck_lab = []
             for i in range(len(ck_bool)):
                 label = tk.Label(game_CkPtFrame,bg = 'red', width = 10, height = 1)
@@ -466,54 +475,60 @@ def gameView():
                 label['text'] = ck_name[i]
                 label.grid(column=i, row=0, padx=5, pady=5)
                 Ck_lab.append(label)
-        
+
+        def trans_2num(id):
+            if(id == 's'):
+                return 0
+            elif(id == '1'):
+                return 1
+            elif(id == '2'):
+                return 2
+            elif(id == '3'):
+                return 3
+            elif(id == '4'):
+                return 4
+            elif(id == '5'):
+                return 5
+            elif(id == 'e'):
+                return 6
+
+        def get_time(id):
+            timer.insert = id
+            timer.getTime()
+            return timer.getAll()
+
         def do(id):
-            global ck_bool,Ck_lab,ck_time
-            if(ck_bool[int(id)-1]):
-                time_list = get_time()
-                ck_time[int(id)-1] = time_list[int(id)]
-                ck_bool[int(id)-1] = False
-                Ck_lab[int(id)-1].config(bg = 'green',text = ck_time[int(id)-1])
-                request.CkPt['ck_'+id] = ck_time[int(id)-1]
+            global ck_bool,Ck_lab,ck_time,run
+            char = id
+            num = trans_2num(char)
+            if(ck_bool[num]):
+                time_list = get_time(num)
+                ck_time[num] = time_list[num]
+                ck_bool[num] = False
+                Ck_lab[num].config(bg = 'green',text = ck_time[num])
+                request.CkPt['ck_'+char] = ck_time[num]
                 try:
                     request.update_result()
                 except:
                     print('伺服器沒有連線，請重新啟動')
-                print('ck'+id,'=',ck_time[int(id)-1])
+                print('ck'+char,'=',ck_time[num])
+                if(char == 'e'):
+                    timer.reset()
+                    leaveButt.config(state = 'active')
+                    run = False
 
         def qrDecode_loop():
             global ck_bool,Ck_lab,ck_time,run
-            data = None
+            char = None
             reader.img = camImg
-
             try:
-                data = reader.data[3]
+                char = reader.data[3]
             except:
                 print('no code',end = '\r')
 
-            if((data == 'e') & ck_bool[5]):
-                time_list = get_time()
-                ck_time[5] = time_list[6]
-                ck_bool[5] = False
-                Ck_lab[5].config(bg = 'green',text = ck_time[5])
-                request.CkPt['ck_end'] = ck_time[5]
-                try:
-                    request.update_result()
-                except:
-                    print('伺服器沒有連線，請重新啟動')
-                timer.reset()
-                print('ckE =',ck_time[5])
-                run = False
-                leaveButt.config(state = 'active')
-            else:
-                try:
-                    do(data)
-                except:
-                    pass
-            
-            if(data):
-                print('解碼 : ',data,end = '\r')
-
+            if(char):
+                do(char)
+                print('解碼 : ',char,end = '\r')
             if(run is not True):
                 reader.stop()
                 game_CkPtFrame.after_cancel(qrDecode_loop)
@@ -530,13 +545,11 @@ def gameView():
             data = request.results_data
         except:
             print('伺服器沒有連線，請重新啟動')
-        
-    
 
     def set():
         global inRoomFrame,camShow,readyButt,leaveButt
 
-        inRoomFrame.pack(anchor=tk.CENTER)
+        inRoomFrame.pack(side=tk.BOTTOM)
         game_camFrame.grid(column=0, row=0, padx=5, pady=5)
         camShow = tk.Label(game_camFrame)
         camShow.pack(anchor=tk.CENTER)
@@ -549,8 +562,6 @@ def gameView():
         video_loop()
 
     set()
-
-
 
 def  exit():
     try:
@@ -569,9 +580,12 @@ button_lev.pack(anchor =tk.SE)
 
 if __name__ == "__main__":
     request = Api_request()
-    jy = joy.ThreadedInputs()
-    for gamepadInput in joy.gamepadInputs:
-        jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
-    jy.start()
+    try:
+        jy = joy.ThreadedInputs()
+        for gamepadInput in joy.gamepadInputs:
+            jy.append_command(gamepadInput, joy.gamepadInputs[gamepadInput])
+        jy.start()
+    except:
+        pass
     login_gui()
     window.mainloop()

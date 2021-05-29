@@ -10,36 +10,42 @@ __author__ = "Mark Heywood"
 __version__ = "0.1.1"
 __license__ = "MIT"
 
-import RPi.GPIO as GPIO
+try:
+	import RPi.GPIO as GPIO
+	import pyautogui as mouse
+except:
+	pass
 from time import sleep
 import threading
 import queue
 import time
 import math
-import pyautogui as mouse
 
 from inputs import get_gamepad
 
-GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BOARD)
+try:
+	GPIO.setwarnings(False)
+	GPIO.setmode(GPIO.BOARD)
 
-forwardPin = 11
-backwardPin = 12
-GPIO.setup(32,GPIO.OUT)
-GPIO.setup(33,GPIO.OUT)
-GPIO.setup(forwardPin,GPIO.OUT)
-GPIO.setup(backwardPin,GPIO.OUT)
+	forwardPin = 11
+	backwardPin = 12
+	GPIO.setup(32,GPIO.OUT)
+	GPIO.setup(33,GPIO.OUT)
+	GPIO.setup(forwardPin,GPIO.OUT)
+	GPIO.setup(backwardPin,GPIO.OUT)
 
-motor=GPIO.PWM(33,200)
-servo=GPIO.PWM(32,100)
-motor.start(0)
-servo.start(15)
+	motor=GPIO.PWM(33,200)
+	servo=GPIO.PWM(32,100)
+	motor.start(0)
+	servo.start(15)
 
-Turn_Count=1
-FB_Count=0
+	Turn_Count=1
+	FB_Count=0
 
-df_speed=40  #Defultspeed
-motor.ChangeDutyCycle(df_speed)
+	df_speed=40  #Defultspeed
+	motor.ChangeDutyCycle(df_speed)
+except:
+	pass
 
 class ThreadedInputs:
 	NOMATCH = 'No Match'
