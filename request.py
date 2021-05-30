@@ -13,21 +13,6 @@ class Api_request:
         self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
         self.register_url = self.base_url+'register'    #post
         self.login_url =  self.base_url+'login'         #post
-        #get 查詢
-        self.player_all = self.base_url+'players'
-        self.room_all = self.base_url+'rooms'
-        self.result_all = self.base_url+'results'
-        self.mod_all = self.base_url+'mods'
-        self.qrcode_all = self.base_url+'qrcodes'
-        #post 新增
-        self.player_create_url =  self.base_url+'players'
-        self.room_create_url =  self.base_url+'rooms'
-        self.result_create_url =  self.base_url+'results'
-        #patch 修改
-        self.method = 'patch' #data + _method = self.method
-        self.player_update_url = self.base_url+'players/update'
-        self.room_update_url = self.base_url+'rooms/update'  
-        self.result_update_url = self.base_url+'results/update'
         #CkPt
         self.CkPt = {}
         self.CkPt['ck_1'] = None  #mm:ss.mill(10)
@@ -46,13 +31,32 @@ class Api_request:
         self.state_wait = 'W'
         self.state_finish = 'F'
     
-        self.reset()
+        self.set()
+
+    def reset(self):
+        self.set()
 
     def set_email(self):
         self.email = self.name + self.domain
         self.password = self.name + self.def_pwd
 
-    def reset(self):
+    def set(self):
+        #get 查詢
+        self.player_all = self.base_url+'players'
+        self.room_all = self.base_url+'rooms'
+        self.result_all = self.base_url+'results'
+        self.mod_all = self.base_url+'mods'
+        self.qrcode_all = self.base_url+'qrcodes'
+        #post 新增
+        self.player_create_url =  self.base_url+'players'
+        self.room_create_url =  self.base_url+'rooms'
+        self.result_create_url =  self.base_url+'results'
+        #patch 修改
+        self.method = 'patch' #data + _method = self.method
+        self.player_update_url = self.base_url+'players/update'
+        self.room_update_url = self.base_url+'rooms/update'  
+        self.result_update_url = self.base_url+'results/update'
+
         self.room_state = self.state_wait
         self.result_state = self.state_wait
         
@@ -107,9 +111,10 @@ class Api_request:
         except:
             print('房間獲取 : print問題')
 
-    def get_results(self):
+    def get_results(self,mod):
+        self.result_url= self.result_all+'?mod='+mod+'&roomID='+str(self.room_id)
         try:
-            self.results = rqs.get(url = self.result_all, 
+            self.results = rqs.get(url = self.result_url, 
                                    headers = self.headers,)
         except:
             print('結果獲取 : 網路問題')

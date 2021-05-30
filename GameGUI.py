@@ -18,7 +18,7 @@ except:
     pass
 
 window = tk.Tk()
-window.attributes('-fullscreen',True)
+#window.attributes('-fullscreen',True)
 window.configure(background='#D8D8EB')
 
 wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
@@ -39,8 +39,6 @@ funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
 inRoomFrame = tk.Frame(window)
 game_camFrame = tk.Frame(inRoomFrame)#房間內相機的frame
 game_funsFrame = tk.Frame(inRoomFrame)#房間內選項的frame
-
-chack = tk.Frame()
 
 reader = QrCodeReader()
 reader.show = False
@@ -67,6 +65,9 @@ timer = Timer()
 img_chack = False
 name_chack = False
 run = True
+create_room = False
+join_room = False
+start_game = False
 
 def ImgChang(img):
     current_image = Image.fromarray(img)#將影象轉換成Image物件
@@ -208,7 +209,7 @@ def takePic():
 
 def login_gui():
     global nameImgInsert,nameInsert,loginFrame,insertConfn,chack
-
+    chack = tk.Frame()
     def register():
         global imgtk,camImg,run
         request.name = nameInsert['text']
@@ -218,9 +219,9 @@ def login_gui():
         car_img = cv2.imread('./img/moje.jpg')
         request.create_player(name_img,car_img)
         loginFrame.place_forget()
+        chack.destroy()
         run = False
         chack.after_cancel(login_chack)
-        chack.destroy()
         destory()
         room_view()
     
@@ -266,24 +267,28 @@ def login_gui():
 
 def login_chack():
     global name_chack,img_chack,insertConfn,run
+    try:
+        if(nameInsert['text'] != ''):
+            name_chack = True
+        else:
+            name_chack = False
 
-    if(nameInsert['text'] != ''):
-        name_chack = True
-    else:
-        name_chack = False
-
-    if(img_chack & name_chack):
-        insertConfn['state'] = 'active'
-    else:
-        insertConfn['state'] = 'disable'
+        if(img_chack & name_chack):
+            insertConfn['state'] = 'active'
+        else:
+            insertConfn['state'] = 'disable'
+    except:
+        pass
     if(run):
-        chack.after(1,login_chack)
+        chack.after(10,login_chack)
     else:
         return
 
 def room_view():
 
     def createRoom():
+        global create_room
+        create_room = True
         request.mod_id = 1
         try:
             request.create_room()    
@@ -298,6 +303,8 @@ def room_view():
         gameView()
 
     def joinRoom(id):
+        global join_room
+        join_room = True
         request.room_id = id
         request.create_result()
         try:
@@ -324,6 +331,7 @@ def room_view():
 
     def showRoom():
         global noRoom,roomList,createButton,refreshButton
+        request.reset()
         request.get_rooms()
         try:
             rooms = request.rooms_data
@@ -341,11 +349,12 @@ def room_view():
         #print(rooms)
         if(rooms):
             for i in rooms:
-                text = '房號 : %s | 房名 : %s | 房主 : %s | 模式 : %s | 房間狀態 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],rooms[i]['mod'],rooms[i]['state'],)
-                button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
-                button.pack(side = tk.TOP)
-                roomList.append(button)
-                #print(roomList)
+                if(rooms[i]['state'] == 'W'):
+                    text = '房號 : %s | 房名 : %s | 房主 : %s | 模式 : %s | 房間狀態 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],rooms[i]['mod'],rooms[i]['state'],)
+                    button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
+                    button.pack(side = tk.TOP)
+                    roomList.append(button)
+                    #print(roomList)
                 
         else:
             noRoom.pack(side = tk.TOP)
@@ -385,6 +394,10 @@ def gameView():
         except:
             return
 
+    def room_member():
+        request.get_results('WIR')
+        data = request.results_data
+
     def destroy():
         global inRoomFrame,camShow,readyButt,leaveButt
         inRoomFrame.after_cancel(video_loop)
@@ -398,58 +411,134 @@ def gameView():
         camera.release()
 
     def leaveRoom():
+        global join_room,create_room
+
+        if(create_room):
+            request.room_state = request.state_close
+            request.update_room()
+        if(join_room):
+            request.result_state = request.state_leave
+            request.update_result()
+
+        join_room = False
+        create_room = False
         request.room_id = None
         try:
+            request.result_state = request.state_leave
             request.update_result()
         except:
             print('伺服器沒有連線，請重新啟動')
-        try:    
-            jy.servo_run = False
-            jy.motor_run = False
-        except:
-            pass
         closeCam()
         destroy()
         try:
             for i in range(len(Ck_lab)):
                 Ck_lab[i].destroy()
-                game_CkPtFrame.destroy() 
+                game_CkPtFrame.destroy()
+            jy.servo_run = False
+            jy.motor_run = False
         except:
             pass
-
         room_view()
 
     def ready():
-        
+        run = True
         def counDown(num):
-            if((num < 6)&(num > 0)):
+            if(num == 6):
+                count['text'] = '準備!!!'
+            elif((num < 6)&(num > 0)):
                 count['text'] = num
             elif(num == 0):
                 count['text'] = '開始!'
+                unreadyButt.config(state = 'disable')
                 start()
-            elif(num == -3):
+            elif(num == -2):
                 count.destroy()
                 game_codnFrame.after_cancel(counDown)
                 game_codnFrame.pack_forget()
                 return
+            print(num)
             num -= 1
             game_codnFrame.after(1000,counDown,num)
         
+        def ck_start():
+            global start_game,run
+            request.get_rooms()
+            data = request.rooms_data[str(request.room_id)]
+            room_state = data['state']
+            print('房間狀態 = ',room_state)
+            if(room_state == 'P'):
+                start_game = True
+            elif(room_state == 'C'):
+                chack.after_cancel(ck_start)
+                leaveRoom()
+            else:
+                start_game = False
+            if(start_game):
+                run = False
+                chack.after_cancel(ck_start)
+                chack.destroy()
+                counDown(countor)
+
+            if(run):
+                chack.after(200,ck_start)
+            else:
+                return
+
+        def ck_member():
+            global run
+            request.get_results('WUR')
+            data = request.results_data
+            print('未就緒 = ',data)
+            if(data == []):
+                run = False
+                request.room_state = request.state_playing
+                request.update_room()
+                chack2.after_cancel(ck_member)
+                chack2.destroy()
+            if(run):
+                chack2.after(200,ck_member)
+            else:
+                return
+
+        def unready():
+            chack.after_cancel(ck_start)
+            chack.destroy()
+            if(create_room):
+                chack2.after_cancel(ck_member)
+                chack2.destroy()
+            request.result_state = request.state_wait
+            request.update_result()
+            unreadyButt.config(state = 'disable')
+            readyButt.config(state = 'active')
+            leaveButt.config(state = 'active')
+            game_codnFrame.pack_forget()
+            count.destroy()
+            return
+
+        global join_room,create_room
+        chack = tk.Frame()
+        chack2 = tk.Frame()
         countor = 6
 
+        unreadyButt.config(state = 'active',command = unready)
         readyButt.config(state = 'disable')
         leaveButt.config(state = 'disable')
 
+        request.result_state = request.state_ready
+        request.update_result()
+
         game_codnFrame.pack(side=tk.TOP)
-        count = tk.Label(game_codnFrame,text = '準備!!!')
+        count = tk.Label(game_codnFrame,text = '等待其他人準備就緒....')
         count.pack(anchor=tk.CENTER)
-        count['font'] = (None, 50, 'italic')
-        counDown(countor)
-        return
-    
-    def unready():
-        return
-        
+        count['font'] = (None, 35, 'italic')
+        try:
+        #if(1):
+            if(create_room):
+                ck_member()
+            ck_start()
+        except:
+            counDown(countor)
+
     def start():
         global camImg,qrFrame,run
         reader.start()
@@ -547,7 +636,7 @@ def gameView():
             print('伺服器沒有連線，請重新啟動')
 
     def set():
-        global inRoomFrame,camShow,readyButt,leaveButt
+        global inRoomFrame,camShow,readyButt,leaveButt,unreadyButt
 
         inRoomFrame.pack(side=tk.BOTTOM)
         game_camFrame.grid(column=0, row=0, padx=5, pady=5)
@@ -555,6 +644,8 @@ def gameView():
         camShow.pack(anchor=tk.CENTER)
     
         game_funsFrame.grid(column=0, row=1, padx=5, pady=5)
+        unreadyButt = tk.Button(game_funsFrame,text='取消準備',bg='yellow',state = 'disable')
+        unreadyButt.pack(side=tk.LEFT)
         readyButt = tk.Button(game_funsFrame,text='準備就緒',command = ready,bg='yellow')
         readyButt.pack(side=tk.LEFT)
         leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
