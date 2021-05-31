@@ -107,6 +107,7 @@ class Api_request:
             self.rooms_text = self.json_decode(self.rooms.text)
         except:
             print('房間獲取 : 解碼問題')
+            print(self.rooms.text)
         try:
             self.rooms_data = self.rooms_text['data']
             print(self.rooms_text['reason'])
@@ -124,6 +125,7 @@ class Api_request:
             self.results_text = self.json_decode(self.results.text)
         except:
             print('結果獲取 : 解碼問題')
+            print(self.results.text)
         try:
             self.results_data = self.results_text['data']
             print(self.results_text['reason'])

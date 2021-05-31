@@ -18,7 +18,7 @@ except:
     pass
 
 window = tk.Tk()
-window.attributes('-fullscreen',True)
+#window.attributes('-fullscreen',True)
 window.configure(background='#D8D8EB')
 
 wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
@@ -444,7 +444,7 @@ def gameView():
             member_state.grid(column = 1,row = i, pady=1)
             state_list.append(member_state)
         if(member_run):
-            game_memberFrame.after(200,room_member)
+            game_memberFrame.after(500,room_member)
         else:
             game_memberFrame.after_cancel(room_member)
             member_refresh()
