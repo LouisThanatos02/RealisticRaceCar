@@ -18,7 +18,7 @@ except:
     pass
 
 window = tk.Tk()
-#window.attributes('-fullscreen',True)
+window.attributes('-fullscreen',True)
 window.configure(background='#D8D8EB')
 
 wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
@@ -33,6 +33,7 @@ picFrame = tk.Frame(window) #影像的frame
 livFrame = tk.Frame(window) #主頁的frame
 game_codnFrame = tk.Frame(window)#準備好倒數的frame
 game_CkPtFrame = tk.Frame(window)
+game_memberFrame = tk.Frame(window)
 outRoomFrame = tk.Frame(window)
 roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
 funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
@@ -304,6 +305,7 @@ def room_view():
 
     def joinRoom(id):
         global join_room
+        request.leader_name = rooms[id]['leader']
         join_room = True
         request.room_id = id
         request.create_result()
@@ -330,7 +332,7 @@ def room_view():
         showRoom()
 
     def showRoom():
-        global noRoom,roomList,createButton,refreshButton
+        global noRoom,roomList,createButton,refreshButton,rooms
         request.reset()
         request.get_rooms()
         try:
@@ -375,7 +377,8 @@ def room_view():
     showRoom()
 
 def gameView():
-
+    global member_run
+    member_run = True
     camera.open(pipeline)
     camera.start()
 
@@ -394,17 +397,82 @@ def gameView():
         except:
             return
 
+    def color(name):
+        if(join_room):
+            player_name = request.name
+            leader_name = request.leader_name
+            if(name == player_name):
+                return 'yellow'
+            elif(name == leader_name):
+                return 'cyan'
+            else:
+                return 'gray'
+        if(create_room):
+            leader_name = request.name
+            if(name == leader_name):
+                return 'green'
+            else:
+                return 'gray'
+
+    def trans_state(word):
+        if(word == request.state_wait):
+            return '等待中','red'
+        elif(word == request.state_ready):
+            return '準備完畢','green'
+
     def room_member():
+        global member_list,state_list,member_run
+        member_refresh()
+        game_memberFrame.pack(side = tk.RIGHT)
         request.get_results('WIR')
         data = request.results_data
+        print('member data : ',data)
+        member_list = []
+        state_list = []
+        for i in range(len(data)):
+            now_data = data[i]
+            player_id = now_data['id']
+            player_name = now_data['name']
+            player_color = color(player_name)
+            state , state_color = trans_state(now_data['state'])
+            text1 = '編號 : '+str(player_id)+' | 名字 : '+player_name
+            member = tk.Label(game_memberFrame,text = text1,bg = player_color)
+            member.grid(column = 0,row = i,padx=2, pady=1)
+            member_list.append(member)
+
+            member_state = tk.Label(game_memberFrame,text = state,bg = state_color)
+            member_state.grid(column = 1,row = i, pady=1)
+            state_list.append(member_state)
+        if(member_run):
+            game_memberFrame.after(200,room_member)
+        else:
+            game_memberFrame.after_cancel(room_member)
+            member_refresh()
+            return
+    
+    def member_refresh():
+        try:
+            for i in range(len(member_list)):
+                member_list[i].destroy()
+            for i in range(len(member_list)):
+                state_list[i].destroy()
+            game_memberFrame.pack_forget()
+        except:
+            pass
+
+    def member_destory():
+        global member_run
+        member_run = False
 
     def destroy():
-        global inRoomFrame,camShow,readyButt,leaveButt
+        global inRoomFrame,camShow,unreadyButt,readyButt,leaveButt
         inRoomFrame.after_cancel(video_loop)
         inRoomFrame.pack_forget()
         camShow.destroy()
+        unreadyButt.destroy()
         readyButt.destroy()
         leaveButt.destroy()
+        member_destory()
 
     def closeCam():
         camera.stop()
@@ -436,6 +504,7 @@ def gameView():
                 game_CkPtFrame.destroy()
             jy.servo_run = False
             jy.motor_run = False
+            member_destory()
         except:
             pass
         room_view()
@@ -541,6 +610,7 @@ def gameView():
 
     def start():
         global camImg,qrFrame,run
+        member_destory()
         reader.start()
         run = True
 
@@ -651,6 +721,7 @@ def gameView():
         leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
         leaveButt.pack(side=tk.LEFT)
         video_loop()
+        room_member()
 
     set()
 

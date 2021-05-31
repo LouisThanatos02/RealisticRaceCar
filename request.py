@@ -7,6 +7,8 @@ class Api_request:
     
     def __init__(self):
         self.name = None
+        self.leader_name = None
+        self.room_id = None
         self.email = None
         self.domain = '@gm.lhu.edu.tw'
         self.def_pwd = 'pwd1234'
