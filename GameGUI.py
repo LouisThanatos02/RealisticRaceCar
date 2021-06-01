@@ -18,7 +18,7 @@ except:
     pass
 
 window = tk.Tk()
-#window.attributes('-fullscreen',True)
+window.attributes('-fullscreen',True)
 window.configure(background='#D8D8EB')
 
 wordList = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
@@ -34,6 +34,7 @@ livFrame = tk.Frame(window) #主頁的frame
 game_codnFrame = tk.Frame(window)#準備好倒數的frame
 game_CkPtFrame = tk.Frame(window)
 game_memberFrame = tk.Frame(window)
+game_resultsFrame = tk.Frame(window)
 outRoomFrame = tk.Frame(window)
 roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
 funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
@@ -426,7 +427,7 @@ def gameView():
         game_memberFrame.pack(side = tk.RIGHT)
         request.get_results('WIR')
         data = request.results_data
-        print('member data : ',data)
+        #print('member data : ',data)
         member_list = []
         state_list = []
         for i in range(len(data)):
@@ -499,12 +500,16 @@ def gameView():
         closeCam()
         destroy()
         try:
-            for i in range(len(Ck_lab)):
-                Ck_lab[i].destroy()
-                game_CkPtFrame.destroy()
             jy.servo_run = False
             jy.motor_run = False
+        except:
+            pass
+        try:
             member_destory()
+            title_label.destroy()
+            for i in range(len(result_label)):
+                result_label[i].destroy()
+            game_resultsFrame.pack_forget()
         except:
             pass
         room_view()
@@ -514,11 +519,12 @@ def gameView():
         def counDown(num):
             if(num == 6):
                 count['text'] = '準備!!!'
+                unreadyButt.config(state = 'disable')
+                member_destory()
             elif((num < 6)&(num > 0)):
                 count['text'] = num
             elif(num == 0):
                 count['text'] = '開始!'
-                unreadyButt.config(state = 'disable')
                 start()
             elif(num == -2):
                 count.destroy()
@@ -530,7 +536,7 @@ def gameView():
             game_codnFrame.after(1000,counDown,num)
         
         def ck_start():
-            global start_game,run
+            global start_game
             request.get_rooms()
             data = request.rooms_data[str(request.room_id)]
             room_state = data['state']
@@ -542,32 +548,28 @@ def gameView():
                 leaveRoom()
             else:
                 start_game = False
+
             if(start_game):
-                run = False
                 chack.after_cancel(ck_start)
                 chack.destroy()
                 counDown(countor)
-
-            if(run):
-                chack.after(200,ck_start)
             else:
-                return
+                chack.after(200,ck_start)
+                
 
         def ck_member():
-            global run
+            global start_game
             request.get_results('WUR')
             data = request.results_data
             print('未就緒 = ',data)
-            if(data == []):
-                run = False
+            if(len(data)):
+                chack2.after(200,ck_member)
+            else:
                 request.room_state = request.state_playing
                 request.update_room()
                 chack2.after_cancel(ck_member)
                 chack2.destroy()
-            if(run):
-                chack2.after(200,ck_member)
-            else:
-                return
+                
 
         def unready():
             chack.after_cancel(ck_start)
@@ -610,7 +612,6 @@ def gameView():
 
     def start():
         global camImg,qrFrame,run
-        member_destory()
         reader.start()
         run = True
 
@@ -672,9 +673,18 @@ def gameView():
                     print('伺服器沒有連線，請重新啟動')
                 print('ck'+char,'=',ck_time[num])
                 if(char == 'e'):
+                    request.CkPt['ck_end'] = ck_time[num]
+                    try:
+                        request.update_result()
+                    except:
+                        print('伺服器沒有連線，請重新啟動')
                     timer.reset()
                     leaveButt.config(state = 'active')
                     run = False
+                    for i in range(len(Ck_lab)):
+                        Ck_lab[i].destroy()
+                        game_CkPtFrame.pack_forget()
+                    show_result()
 
         def qrDecode_loop():
             global ck_bool,Ck_lab,ck_time,run
@@ -697,13 +707,48 @@ def gameView():
             
         set()  
 
+    def finish_chack():
+        return
+
     def show_result():
-        global ck_time
+        global ck_time,title_label,result_label
         try:
-            request.get_results()
-            data = request.results_data
+            request.get_results('WIR')
+            datas = request.results_data
+            online = True
         except:
+            online = False
             print('伺服器沒有連線，請重新啟動')
+        game_resultsFrame.pack(side = tk.TOP)
+        cks = ['編號','名字','檢查點1','檢查點2','檢查點3','檢查點4','檢查點5','終點']
+        ck = ['ck_1','ck_2','ck_3','ck_4','ck_5','ck_end']
+        cks_ = ['id','name']+ck
+        result_label = []
+        for i in range(len(cks)): #title
+            title_label = tk.Label(game_resultsFrame,text = cks[i],bg = 'red')
+            title_label['font'] = (None, 14,'italic')
+            title_label.grid(column = i,row = 0,padx = 1,sticky = tk.W)
+
+        if(online):
+            for i in range(len(datas)): 
+                for j in range(len(cks_)):
+                    data = datas[i]
+                    col = color(data['name'])
+                    label = tk.Label(game_resultsFrame,text = data[cks_[j]],bg = col)
+                    label['font'] = (None, 12,'italic')
+                    label.grid(column = j,row = i+1,padx = 1,pady = 1,sticky = tk.W)
+                    result_label.append(label)
+        else:
+            data['id'] = '無'
+            data['name'] = request.name
+            for i in ck:
+                data[i] = request.CkPt[i]
+            for i in range(len(cks_)):
+                label = tk.Label(game_resultsFrame,text = data[cks_[i]],bg = 'yellow')
+                label['font'] = (None, 12,'italic')
+                label.grid(column = 0,row = i+1,padx = 1,pady = 1,sticky = tk.W)
+                result_label.append(label)
+        
 
     def set():
         global inRoomFrame,camShow,readyButt,leaveButt,unreadyButt
