@@ -182,13 +182,13 @@ def takePic():
         destroy()
         try:
             reImg = cv2.resize(cv2image,(150,110))
+            imgtk = ImgChang(reImg)
+            nameImgInsert.imgtk = imgtk
+            nameImgInsert.config(image=imgtk)
+            img_chack = True
         except:
             pass
-        imgtk = ImgChang(reImg)
-        nameImgInsert.imgtk = imgtk
-        nameImgInsert.config(image=imgtk)
-        img_chack = True
-
+        
     def destroy():
         global picFrame,image_canvas,image_Take
         picFrame.after_cancel(video_loop)
