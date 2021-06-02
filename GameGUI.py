@@ -64,6 +64,7 @@ pipeline = 0
 
 timer = Timer()
 
+online = True
 img_chack = False
 name_chack = False
 run = True
@@ -289,13 +290,15 @@ def login_chack():
 def room_view():
 
     def createRoom():
-        global create_room
+        global create_room,online
         create_room = True
         request.mod_id = 1
         try:
             request.create_room()    
             request.create_result()
+            online = True
         except:
+            online = False
             print('伺服器沒有連線，請重新啟動')
         try:
             startEng()
@@ -586,7 +589,7 @@ def gameView():
             count.destroy()
             return
 
-        global join_room,create_room
+        global join_room,create_room,online
         chack = tk.Frame()
         chack2 = tk.Frame()
         countor = 6
@@ -595,19 +598,19 @@ def gameView():
         readyButt.config(state = 'disable')
         leaveButt.config(state = 'disable')
 
-        request.result_state = request.state_ready
-        request.update_result()
+        if(online):
+            request.result_state = request.state_ready
+            request.update_result()
 
         game_codnFrame.pack(side=tk.TOP)
         count = tk.Label(game_codnFrame,text = '等待其他人準備就緒....')
         count.pack(anchor=tk.CENTER)
         count['font'] = (None, 35, 'italic')
-        try:
-        #if(1):
+        if(online):
             if(create_room):
                 ck_member()
             ck_start()
-        except:
+        else:
             counDown(countor)
 
     def start():
@@ -684,6 +687,7 @@ def gameView():
                     for i in range(len(Ck_lab)):
                         Ck_lab[i].destroy()
                         game_CkPtFrame.pack_forget()
+
                     show_result()
 
         def qrDecode_loop():
@@ -711,13 +715,11 @@ def gameView():
         return
 
     def show_result():
-        global ck_time,title_label,result_label
+        global ck_time,title_label,result_label,online
         try:
             request.get_results('WIR')
             datas = request.results_data
-            online = True
         except:
-            online = False
             print('伺服器沒有連線，請重新啟動')
         game_resultsFrame.pack(side = tk.TOP)
         cks = ['編號','名字','檢查點1','檢查點2','檢查點3','檢查點4','檢查點5','終點']
@@ -739,19 +741,20 @@ def gameView():
                     label.grid(column = j,row = i+1,padx = 1,pady = 1,sticky = tk.W)
                     result_label.append(label)
         else:
+            data = {}
             data['id'] = '無'
             data['name'] = request.name
-            for i in ck:
-                data[i] = request.CkPt[i]
+            for i in range(len(ck)):
+                data[ck[i]] = request.CkPt[ck[i]]
             for i in range(len(cks_)):
                 label = tk.Label(game_resultsFrame,text = data[cks_[i]],bg = 'yellow')
                 label['font'] = (None, 12,'italic')
-                label.grid(column = 0,row = i+1,padx = 1,pady = 1,sticky = tk.W)
+                label.grid(column = i,row = 1,padx = 1,pady = 1,sticky = tk.W)
                 result_label.append(label)
         
 
     def set():
-        global inRoomFrame,camShow,readyButt,leaveButt,unreadyButt
+        global inRoomFrame,camShow,readyButt,leaveButt,unreadyButt,online
 
         inRoomFrame.pack(side=tk.BOTTOM)
         game_camFrame.grid(column=0, row=0, padx=5, pady=5)
@@ -766,7 +769,8 @@ def gameView():
         leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
         leaveButt.pack(side=tk.LEFT)
         video_loop()
-        room_member()
+        if(online):
+            room_member()
 
     set()
 
