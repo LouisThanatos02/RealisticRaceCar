@@ -335,8 +335,8 @@ def room_view():
     def showRoom():
         global noRoom,roomList,createButton,refreshButton,rooms
         request.reset()
-        request.get_rooms()
         try:
+            request.get_rooms()
             rooms = request.rooms_data
             server_state = ''
         except:
