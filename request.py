@@ -12,7 +12,8 @@ class Api_request:
         self.email = None
         self.domain = '@gm.lhu.edu.tw'
         self.def_pwd = 'pwd1234'
-        self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
+        #self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
+        self.base_url =  'http://192.168.50.1/api/'
         self.register_url = self.base_url+'register'    #post
         self.login_url =  self.base_url+'login'         #post
         #CkPt
@@ -70,6 +71,7 @@ class Api_request:
             self.regist = rqs.post(url = self.register_url,
                                data = data)
         except:
+            print(self.regist.text)
             print('設備註冊 : 網路問題')
         try:
             self.login = rqs.post(url = self.login_url,
@@ -350,8 +352,23 @@ class Api_request:
 if __name__ == "__main__":
     request = Api_request()
     request.name = input('請輸入你的名字 : ')
+    request.set_email()
     cam = CSI_Camera()
-    cam.open(0)
+    CAPTURE_WIDTH=1660
+    CAPTURE_HIEGHT=1100
+    DISPLAY_WIDTH=1660
+    DISPLAY_HEIGHT=920
+    FARMERATE=20
+    cam.create_gstreamer_pipeline(
+            capture_width=CAPTURE_WIDTH,
+            capture_height=CAPTURE_HIEGHT,
+            framerate=FARMERATE,
+            flip_method=0,
+            display_height=DISPLAY_HEIGHT,
+            display_width=DISPLAY_WIDTH,
+    )
+    pipeline = cam.gstreamer_pipeline
+    cam.open(pipeline)
     cam.start()
     while 1:
         su, frame = cam.read()
