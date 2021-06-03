@@ -50,7 +50,7 @@ camera = CSI_Camera()
 CAPTURE_WIDTH=1660
 CAPTURE_HIEGHT=1100
 DISPLAY_WIDTH=1660
-DISPLAY_HEIGHT=960
+DISPLAY_HEIGHT=920
 FARMERATE=20
 camera.create_gstreamer_pipeline(
             capture_width=CAPTURE_WIDTH,
@@ -60,8 +60,8 @@ camera.create_gstreamer_pipeline(
             display_height=DISPLAY_HEIGHT,
             display_width=DISPLAY_WIDTH,
     )
-#pipeline = camera.gstreamer_pipeline
-pipeline = 0
+pipeline = camera.gstreamer_pipeline
+#pipeline = 0
 
 timer = Timer()
 
