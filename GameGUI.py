@@ -12,6 +12,7 @@ from PIL import Image, ImageTk
 from request import Api_request
 from qrcode import QrCodeReader
 from Timer import Timer
+import pyzbar.pyzbar as zbar
 try:
     import thread_joy as joy
 except:
@@ -518,7 +519,6 @@ def gameView():
         room_view()
 
     def ready():
-        run = True
         def counDown(num):
             if(num == 6):
                 count['text'] = '準備!!!'
@@ -614,9 +614,8 @@ def gameView():
             counDown(countor)
 
     def start():
-        global camImg,qrFrame,run
-        reader.start()
-        run = True
+        global camImg,qr_run
+        qr_run = True
 
         def set():
             global ck_name,ck_bool,ck_time
@@ -661,7 +660,7 @@ def gameView():
             return timer.getAll()
 
         def do(id):
-            global ck_bool,Ck_lab,ck_time,run
+            global ck_bool,Ck_lab,ck_time,qr_run
             char = id
             num = trans_2num(char)
             if(ck_bool[num]):
@@ -683,7 +682,7 @@ def gameView():
                         print('伺服器沒有連線，請重新啟動')
                     timer.reset()
                     leaveButt.config(state = 'active')
-                    run = False
+                    qr_run = False
                     for i in range(len(Ck_lab)):
                         Ck_lab[i].destroy()
                         game_CkPtFrame.pack_forget()
@@ -691,24 +690,28 @@ def gameView():
                     show_result()
 
         def qrDecode_loop():
-            global ck_bool,Ck_lab,ck_time,run
-            char = None
-            reader.img = camImg
-            try:
-                char = reader.data[3]
-            except:
-                print('no code',end = '\r')
-
-            if(char):
-                do(char)
-                print('解碼 : ',char,end = '\r')
-            if(run is not True):
-                reader.stop()
-                game_CkPtFrame.after_cancel(qrDecode_loop)
-                return
+            global ck_bool,Ck_lab,ck_time,qr_run
+            char = []
+            char = decode(camImg)
+            if(len(char)):
+                char = char[0]
+                do(char[3])
+                print('解碼 : ',char[3],end = '\r')
+            if(qr_run):
+                game_CkPtFrame.after(30,qrDecode_loop)
             else:
-                game_CkPtFrame.after(1,qrDecode_loop)
+                game_CkPtFrame.after_cancel(qrDecode_loop)
+
+        def decode(img):
             
+            bbox = []
+            data = []
+            gray_img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+            barcodes = zbar.decode(gray_img)
+            for i,barcodes in enumerate(barcodes):
+                bbox.append(np.array(barcodes.rect))
+                data.append(barcodes.data.decode('UTF-8'))
+            return data    
         set()  
 
     def finish_chack():
