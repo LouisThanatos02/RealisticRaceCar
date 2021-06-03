@@ -60,8 +60,8 @@ camera.create_gstreamer_pipeline(
             display_height=DISPLAY_HEIGHT,
             display_width=DISPLAY_WIDTH,
     )
-pipeline = camera.gstreamer_pipeline
-#pipeline = 0
+#pipeline = camera.gstreamer_pipeline
+pipeline = 0
 
 timer = Timer()
 
@@ -625,7 +625,9 @@ def gameView():
             Ck_label()
             timer.set()
             do('s')
+            reader.start()
             qrDecode_loop()
+            
 
         def Ck_label():
             global ck_name,ck_bool,Ck_lab
@@ -681,6 +683,7 @@ def gameView():
                     except:
                         print('伺服器沒有連線，請重新啟動')
                     timer.reset()
+                    reader.stop()
                     leaveButt.config(state = 'active')
                     qr_run = False
                     for i in range(len(Ck_lab)):
@@ -691,27 +694,16 @@ def gameView():
 
         def qrDecode_loop():
             global ck_bool,Ck_lab,ck_time,qr_run
-            char = []
-            char = decode(camImg)
+            reader.img = camImg
+            char = reader.char
             if(len(char)):
-                char = char[0]
                 do(char[3])
                 print('解碼 : ',char[3],end = '\r')
             if(qr_run):
                 game_CkPtFrame.after(30,qrDecode_loop)
             else:
                 game_CkPtFrame.after_cancel(qrDecode_loop)
-
-        def decode(img):
-            
-            bbox = []
-            data = []
-            gray_img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-            barcodes = zbar.decode(gray_img)
-            for i,barcodes in enumerate(barcodes):
-                bbox.append(np.array(barcodes.rect))
-                data.append(barcodes.data.decode('UTF-8'))
-            return data    
+   
         set()  
 
     def finish_chack():

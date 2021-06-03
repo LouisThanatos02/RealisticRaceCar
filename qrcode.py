@@ -11,6 +11,7 @@ class QrCodeReader:
         self.after_img = None
         self.show = False
         self.data = None
+        self.char = []
         self.running = False
         self.get_lock = threading.Lock()
         self.detector = None
@@ -35,30 +36,39 @@ class QrCodeReader:
         return usm
 
     def decode(self):
-        if(1):
+        while(self.running):
             try:
-                self.bbox = [];self.data = []
                 self.gray_img = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
+                self.do = True
+            except:
+                self.gray_img = None
+                self.do = False
                 #aft_img = cv2.threshold(gray_img, 100, 170, cv2.THRESH_BINARY)
                 #aft_img = self.sharpen(gray_img)
+            if(self.do): 
+                self.bbox = []
+                self.data = []
                 barcodes = zbar.decode(self.gray_img)
                 #self.data, self.bbox, _ = self.detector.detectMulti(self.gray_img)
                 #self.data, self.bbox, _ = self.detector.detectAndDecodeMulti(self.gray_img)
                 for i,barcodes in enumerate(barcodes):
                     self.bbox.append(np.array(barcodes.rect))
                     self.data.append(barcodes.data.decode('UTF-8'))
-            except:
+                if(len(self.data)):
+                    self.char = self.data[0]
+
+        #except:
                 #print('no img',end = '\r')
-                pass
-            return self.data
+            #pass
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     DeCoder = QrCodeReader()
     cap = cv2.VideoCapture(0)
+    DeCoder.start()
     while(1):
         succ, img = cap.read()
         DeCoder.img = img
-        data = DeCoder.decode()
         cv2.namedWindow('decode_img',cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty('decode_img',cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
         qr_img = cv2.flip(img,1)
@@ -67,13 +77,14 @@ if __name__ == "__main__":
         except:
             #print('img delay')
             pass
+        data = DeCoder.char
         if(len(data)):
             try:
-                data = data[1]
                 print('解碼 :',data[3])
             except:
                 pass
         if cv2.waitKey(1) & 0xFF == 27:
             break
+    DeCoder.stop()
     cap.release()
     cv2.destroyAllWindows()
