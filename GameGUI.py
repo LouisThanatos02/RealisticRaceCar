@@ -47,11 +47,11 @@ reader = QrCodeReader()
 reader.show = False
 
 camera = CSI_Camera()
-CAPTURE_WIDTH=1660
+CAPTURE_WIDTH=1500
 CAPTURE_HIEGHT=1100
-DISPLAY_WIDTH=1660
-DISPLAY_HEIGHT=920
-FARMERATE=20
+DISPLAY_WIDTH=1240
+DISPLAY_HEIGHT= 900
+FARMERATE=15
 camera.create_gstreamer_pipeline(
             capture_width=CAPTURE_WIDTH,
             capture_height=CAPTURE_HIEGHT,
@@ -60,8 +60,8 @@ camera.create_gstreamer_pipeline(
             display_height=DISPLAY_HEIGHT,
             display_width=DISPLAY_WIDTH,
     )
-#pipeline = camera.gstreamer_pipeline
-pipeline = 0
+pipeline = camera.gstreamer_pipeline
+#pipeline = 0
 
 timer = Timer()
 
@@ -315,8 +315,6 @@ def room_view():
         request.room_id = id
         request.create_result()
         try:
-            jy.servo_run = True
-            jy.motor_run = True
             startEng()
         except:
             pass
@@ -350,32 +348,34 @@ def room_view():
         outRoomFrame.pack(anchor=tk.CENTER)
         roomFrame.grid(column=0, row=0, padx=5, pady=5)
         roomList = []
-        text_noRoom = '目前沒有房間' + server_state
+        text_noRoom = '目前沒有賽事' + server_state
         noRoom = tk.Label(roomFrame,bg='yellow',height = 1,text = text_noRoom)
 
         #print(rooms)
-        if(rooms):
+        if(len(rooms)):
             for i in rooms:
                 if(rooms[i]['state'] == 'W'):
-                    text = '房號 : %s | 房名 : %s | 房主 : %s | 模式 : %s | 房間狀態 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],rooms[i]['mod'],rooms[i]['state'],)
+                    text = '賽事號碼 : %s | 賽事名稱 : %s | 主持人 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],)
                     button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
+                    button['font'] =  (None, 16, 'italic')
                     button.pack(side = tk.TOP)
                     roomList.append(button)
-                    #print(roomList)
+                    print(roomList)
                 
-        else:
+        if(len(roomList) == False):
+            print('無賽事可以加入')
             noRoom.pack(side = tk.TOP)
 
         funsFrame.grid(column=0, row=1, padx=5, pady=5)
-        createButton = tk.Button(funsFrame,bg='yellow',text = '新增房間', width = 10, height = 2,command = createRoom)
+        createButton = tk.Button(funsFrame,bg='yellow',text = '新增賽事', width = 10, height = 2,command = createRoom)
         createButton.pack(side = tk.LEFT)
         refreshButton = tk.Button(funsFrame,bg='yellow',text = '重新整理', width = 10, height = 2,command = refreshRoom)
         refreshButton.pack(side = tk.LEFT)
 
     def startEng():
         #呼叫搖桿控制
-        jy.servo_th.start()
-        jy.motor_th.start()
+        jy.servo_run = True
+        jy.motor_run = True
         return
 
     #livFrame.pack(anchor=tk.CENTER)
@@ -392,7 +392,7 @@ def gameView():
         global camImg
         try:
             success, camImg = camera.read()  # 從攝像頭讀取照片
-            cv2.waitKey(1)
+            #cv2.waitKey(1)
             cv2image = cv2.cvtColor(camImg, cv2.COLOR_BGR2RGBA)#轉換顏色從BGR到RGBA
             #blur_img = cv2.medianBlur(cv2image,5)
             imgtk = ImgChang(cv2image)
@@ -766,6 +766,8 @@ def gameView():
         video_loop()
         if(online):
             room_member()
+        jy.servo_run = True
+        jy.motor_run = True
 
     set()
 
