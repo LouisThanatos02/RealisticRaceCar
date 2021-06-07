@@ -34,16 +34,15 @@ loginFrame = tk.Frame(window) #登入的frame
 keyBoardFrame = tk.Frame(window)
 picFrame = tk.Frame(window) #影像的frame
 livFrame = tk.Frame(window) #主頁的frame
-game_codnFrame = tk.Frame(window)#準備好倒數的frame
-game_CkPtFrame = tk.Frame(window)
-game_memberFrame = tk.Frame(window)
-
 outRoomFrame = tk.Frame(window)
 roomFrame = tk.Frame(outRoomFrame)  #房間列表的frame
 funsFrame = tk.Frame(outRoomFrame)  #選項按鈕的frame
 inRoomFrame = tk.Frame(window)
 game_camFrame = tk.Frame(inRoomFrame)#房間內相機的frame
-game_funsFrame = tk.Frame(inRoomFrame)#房間內選項的frame
+game_funsFrame = tk.Frame(inRoomFrame,background = 'black')#房間內選項的frame
+game_codnFrame = tk.Frame(inRoomFrame)#準備好倒數的frame
+game_CkPtFrame = tk.Frame(inRoomFrame)
+game_memberFrame = tk.Frame(inRoomFrame)
 
 reader = QrCodeReader()
 reader.show = False
@@ -430,7 +429,7 @@ def gameView():
     def room_member():
         global member_list,state_list,member_run
         member_refresh()
-        game_memberFrame.pack(side = tk.RIGHT)
+        game_memberFrame.grid(column=2, row=1,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
         request.get_results('WIR')
         data = request.results_data
         #print('member data : ',data)
@@ -463,7 +462,7 @@ def gameView():
                 member_list[i].destroy()
             for i in range(len(member_list)):
                 state_list[i].destroy()
-            game_memberFrame.pack_forget()
+            game_memberFrame.destory()
         except:
             pass
 
@@ -604,7 +603,7 @@ def gameView():
             request.result_state = request.state_ready
             request.update_result()
 
-        game_codnFrame.pack(side=tk.TOP)
+        game_codnFrame.grid(column = 1,row = 0,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
         count = tk.Label(game_codnFrame,text = '等待其他人準備就緒....')
         count.pack(anchor=tk.CENTER)
         count['font'] = (None, 35, 'italic')
@@ -638,7 +637,7 @@ def gameView():
 
         def Ck_label():
             global ck_name,ck_bool,Ck_lab
-            game_CkPtFrame.pack(side = tk.TOP)
+            game_CkPtFrame.grid(column=1, row=0,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
             Ck_lab = []
             for i in range(len(ck_bool)):
                 label = tk.Label(game_CkPtFrame,bg = 'red', width = 10, height = 1)
@@ -848,17 +847,17 @@ def gameView():
         global inRoomFrame,camShow,readyButt,leaveButt,unreadyButt,online
 
         inRoomFrame.pack(side=tk.BOTTOM)
-        game_camFrame.grid(column=0, row=0, padx=5, pady=5)
-        camShow = tk.Label(game_camFrame)
-        camShow.pack(anchor=tk.CENTER)
+        #game_camFrame.grid(column=1, row=1,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
+        camShow = tk.Label(inRoomFrame)
+        camShow.grid(column=1, row=1,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
     
-        game_funsFrame.grid(column=0, row=1, padx=5, pady=5)
+        game_funsFrame.grid(column=1, row=2,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
         unreadyButt = tk.Button(game_funsFrame,text='取消準備',bg='yellow',state = 'disable')
-        unreadyButt.pack(side=tk.LEFT)
+        unreadyButt.grid(column=0, row=0,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
         readyButt = tk.Button(game_funsFrame,text='準備就緒',command = ready,bg='yellow')
-        readyButt.pack(side=tk.LEFT)
+        readyButt.grid(column=1, row=0,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
         leaveButt = tk.Button(game_funsFrame,text='離開房間',command = leaveRoom,bg='yellow')
-        leaveButt.pack(side=tk.LEFT)
+        leaveButt.grid(column=2, row=0,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
         video_loop()
         if(online):
             room_member()
