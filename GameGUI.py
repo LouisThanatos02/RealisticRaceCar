@@ -444,11 +444,11 @@ def gameView():
             state , state_color = trans_state(now_data['state'])
             text1 = '編號 : '+str(player_id)+' | 名字 : '+player_name
             member = tk.Label(game_memberFrame,text = text1,bg = player_color)
-            member.grid(column = 0,row = i,padx=2, pady=1)
+            member.grid(column = 0,row = i,padx=2, pady=1,ipadx = 1,ipady = 1,sticky=tk.NSEW)
             member_list.append(member)
 
             member_state = tk.Label(game_memberFrame,text = state,bg = state_color)
-            member_state.grid(column = 1,row = i, pady=1)
+            member_state.grid(column = 1,row = i,padx = 1,pady=1,ipadx = 1,ipady = 1,sticky=tk.NSEW)
             state_list.append(member_state)
         if(member_run):
             game_memberFrame.after(500,room_member)
