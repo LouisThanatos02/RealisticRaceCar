@@ -26,13 +26,13 @@ class Api_request:
         self.CkPt['ck_5'] = None
         self.CkPt['ck_end'] = None
         #room state 房間狀態
-        self.state_playing = 'P'
         self.state_close = 'C'
         #result state 房間內的玩家狀態
         self.state_ready = 'R'
         self.state_leave = 'L'
         #共用state
         self.state_wait = 'W'
+        self.state_playing = 'P'
         self.state_finish = 'F'
     
         self.set()
