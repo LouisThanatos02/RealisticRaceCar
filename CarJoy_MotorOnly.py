@@ -5,8 +5,8 @@ from fcntl import ioctl
 #GPIO設定---------------------
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
-forwardPin = 11
-backwardPin = 12
+forwardPin = 21
+backwardPin = 22
 GPIO.setup(33,GPIO.OUT)
 GPIO.setup(forwardPin,GPIO.OUT)
 GPIO.setup(backwardPin,GPIO.OUT)

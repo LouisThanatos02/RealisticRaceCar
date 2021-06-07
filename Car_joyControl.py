@@ -7,8 +7,8 @@ from fcntl import ioctl
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 
-forwardPin = 11
-backwardPin = 12
+forwardPin = 21
+backwardPin = 22
 
 GPIO.setup(32,GPIO.OUT)
 GPIO.setup(33,GPIO.OUT)

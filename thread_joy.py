@@ -27,14 +27,14 @@ try:
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BOARD)
 
-	forwardPin = 11
-	backwardPin = 12
+	forwardPin = 37
+	backwardPin = 38
 	GPIO.setup(32,GPIO.OUT)
 	GPIO.setup(33,GPIO.OUT)
 	GPIO.setup(forwardPin,GPIO.OUT)
 	GPIO.setup(backwardPin,GPIO.OUT)
 
-	motor=GPIO.PWM(33,200)
+	motor=GPIO.PWM(33,9999)
 	servo=GPIO.PWM(32,100)
 	motor.start(0)
 	servo.start(15)
@@ -57,8 +57,8 @@ class ThreadedInputs:
 		self.lastEventCode = self.NOMATCH
 		# Initialise the thread status flag
 		self.stopped = False
-		self.servo_run = True
-		self.motor_run = True
+		self.servo_run = False
+		self.motor_run = False
 		self.q = queue.LifoQueue()
 		self.width,self.height = mouse.size()
 		mouse.moveTo(self.width/2,self.height/2)
@@ -81,6 +81,8 @@ class ThreadedInputs:
 		self.mouse_C_th.daemon = True
 
 		self.read_th.start()
+		self.servo_th.start()
+		self.motor_th.start()
 		self.mouse_XP_th.start()
 		self.mouse_YP_th.start()
 		self.mouse_C_th.start()
@@ -149,7 +151,7 @@ class ThreadedInputs:
 						t_angel = DC_lut[angel]
 						if(math.fabs(t_angel-old_angel)>0.01):
 							servo.ChangeDutyCycle(t_angel)
-							#print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
+							print('Direction -> {} || Value -> {}'.format('ABS_Z', t_angel))
 						
 						old_angel = t_angel
 					else:
@@ -181,13 +183,15 @@ class ThreadedInputs:
 							#print("後退")
 						speed = int(ly/0.128)/10
 						#print("速度:",speed)
+						if(ly<100):
+							speed = 75
 						time.sleep(0.08)
 						motor.ChangeDutyCycle(speed)
-						#print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
+						print('Speed -> {} || Value -> {}'.format('ABS_Y',LY))
 					else:
 						GPIO.output(forwardPin,0)
 						GPIO.output(backwardPin,0)
-						motor.ChangeDutyCycle(40)
+						motor.ChangeDutyCycle(100)
 			
 				old_LY = LY
 			if self.stopped:
@@ -320,6 +324,8 @@ if __name__ == "__main__":
 	for gamepadInput in gamepadInputs:
 			start.append_command(gamepadInput, gamepadInputs[gamepadInput])
 	start.start()
+	start.servo_run = True
+	start.motor_run = True
 	while 1:
 		commandInput, commandValue = start.read()
 		if commandInput == 'BTN_START':
