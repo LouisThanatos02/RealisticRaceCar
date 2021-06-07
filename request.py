@@ -12,6 +12,7 @@ class Api_request:
         self.email = None
         self.domain = '@gm.lhu.edu.tw'
         self.def_pwd = 'pwd1234'
+        self.online = True
         #self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
         self.base_url =  'http://192.168.50.1/api/'
         self.register_url = self.base_url+'register'    #post
@@ -71,7 +72,8 @@ class Api_request:
             self.regist = rqs.post(url = self.register_url,
                                data = data)
         except:
-            print(self.regist.text)
+            self.online = False
+            #print(self.regist.text)
             print('設備註冊 : 網路問題')
         try:
             self.login = rqs.post(url = self.login_url,
@@ -127,7 +129,7 @@ class Api_request:
             self.results_text = self.json_decode(self.results.text)
         except:
             print('結果獲取 : 解碼問題')
-            print(self.results.text)
+            #print(self.results.text)
         try:
             self.results_data = self.results_text['data']
             print(self.results_text['reason'])

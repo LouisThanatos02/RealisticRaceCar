@@ -60,8 +60,8 @@ camera.create_gstreamer_pipeline(
             display_height=DISPLAY_HEIGHT,
             display_width=DISPLAY_WIDTH,
     )
-pipeline = camera.gstreamer_pipeline
-#pipeline = 0
+#pipeline = camera.gstreamer_pipeline
+pipeline = 0
 
 timer = Timer()
 
@@ -342,7 +342,7 @@ def room_view():
             rooms = request.rooms_data
             server_state = ''
         except:
-            rooms = None
+            rooms = []
             server_state = '，伺服器沒有連線，只可進行單機遊戲，如需要多人，請重新啟動'
 
         outRoomFrame.pack(anchor=tk.CENTER)
@@ -355,26 +355,15 @@ def room_view():
         if(len(rooms)):
             for i in rooms:
                 if(rooms[i]['state'] == 'W'):
-<<<<<<< HEAD
                     text = '賽事號碼 : %s | 名稱 : %s | 主持人 : %s'%(i,rooms[i]['name'],rooms[i]['leader'])
-=======
                     text = '賽事號碼 : %s | 賽事名稱 : %s | 主持人 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],)
->>>>>>> 07604b2eb64dda4b9023b16b874540c920799a84
                     button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
                     button['font'] =  (None, 16, 'italic')
                     button.pack(side = tk.TOP)
                     roomList.append(button)
-<<<<<<< HEAD
                     #print(roomList)
-            if(len(roomList) == False):
-                noRoom.pack(side = tk.TOP)
-        else:
-=======
-                    print(roomList)
-                
         if(len(roomList) == False):
             print('無賽事可以加入')
->>>>>>> 07604b2eb64dda4b9023b16b874540c920799a84
             noRoom.pack(side = tk.TOP)
 
         funsFrame.grid(column=0, row=1, padx=5, pady=5)
@@ -777,8 +766,11 @@ def gameView():
         video_loop()
         if(online):
             room_member()
-        jy.servo_run = True
-        jy.motor_run = True
+        try:
+            jy.servo_run = True
+            jy.motor_run = True
+        except:
+            pass
 
     set()
 
