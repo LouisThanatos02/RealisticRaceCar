@@ -350,24 +350,25 @@ def room_view():
         outRoomFrame.pack(anchor=tk.CENTER)
         roomFrame.grid(column=0, row=0, padx=5, pady=5)
         roomList = []
-        text_noRoom = '目前沒有房間' + server_state
+        text_noRoom = '目前沒有賽事' + server_state
         noRoom = tk.Label(roomFrame,bg='yellow',height = 1,text = text_noRoom)
 
         #print(rooms)
-        if(rooms):
+        if(len(rooms)):
             for i in rooms:
                 if(rooms[i]['state'] == 'W'):
-                    text = '房號 : %s | 房名 : %s | 房主 : %s | 模式 : %s | 房間狀態 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],rooms[i]['mod'],rooms[i]['state'],)
+                    text = '賽事號碼 : %s | 名稱 : %s | 主持人 : %s'%(i,rooms[i]['name'],rooms[i]['leader'])
                     button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
                     button.pack(side = tk.TOP)
                     roomList.append(button)
                     #print(roomList)
-                
+            if(len(roomList) == False):
+                noRoom.pack(side = tk.TOP)
         else:
             noRoom.pack(side = tk.TOP)
 
         funsFrame.grid(column=0, row=1, padx=5, pady=5)
-        createButton = tk.Button(funsFrame,bg='yellow',text = '新增房間', width = 10, height = 2,command = createRoom)
+        createButton = tk.Button(funsFrame,bg='yellow',text = '新增賽事', width = 10, height = 2,command = createRoom)
         createButton.pack(side = tk.LEFT)
         refreshButton = tk.Button(funsFrame,bg='yellow',text = '重新整理', width = 10, height = 2,command = refreshRoom)
         refreshButton.pack(side = tk.LEFT)
