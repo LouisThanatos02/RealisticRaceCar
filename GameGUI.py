@@ -692,7 +692,6 @@ def gameView():
                         print('伺服器沒有連線，請重新啟動')
                     timer.reset()
                     reader.stop()
-                    leaveButt.config(state = 'active')
                     qr_run = False
                     for i in range(len(Ck_lab)):
                         Ck_lab[i].destroy()
@@ -718,14 +717,33 @@ def gameView():
         set()  
 
     def finish_chack():
-        chack = tk.Frame()
-        request.get_results('WUF')
-        data = request.results_data
-        if(len(data)):
-           chack.after(100,finish_chack)
-        else:
-            chack.destroy()
-            show_result()
+        chack_window = tk.Tk()
+        chack = tk.Frame(chack_window)
+        count = 0
+        label = tk.Label(chack_window)
+        text = '正在等待其他玩家完成賽事'
+
+        def set():
+            label['text'] = text
+            label['font'] = (None, 28,'italic')
+            label.pack(side = tk.TOP)
+            loop()
+
+        def loop():
+            for i in range(count):
+                text += '.'
+            label['text'] = text
+            count += 1
+            if(count == 3):
+                count = 0
+            request.get_results('WUF')
+            data = request.results_data
+            if(len(data)):
+                chack.after(300,loop)
+            else:
+                chack.destroy()
+                show_result()
+        set()
 
     def show_result():
         global ck_time,online,result_window
@@ -733,11 +751,7 @@ def gameView():
         result_window = tk.Tk()
         #result_window.geometry('+'+str(int(window_width/1.2)) +'+'+str(int(window_heigth/1.2)))  #'+'+str(int(window_width/1.7)) +'+'+str(int(window_heigth/1.7))
         result_window.configure(background='#D8D8EB')
-        res_secc_Frame = tk.Frame(result_window)
-        res_secc_Frame.pack(side = tk.TOP)
-        res_fail_Frame = tk.Frame(result_window)
-        res_fail_Frame.pack(side = tk.TOP)
-        list = [res_secc_Frame,res_fail_Frame]
+        
         try:
             request.get_results('EVRS')
             succ_datas = request.results_data
@@ -755,6 +769,12 @@ def gameView():
         result_label = []
 
         if(online):
+            res_secc_Frame = tk.Frame(result_window)
+            res_secc_Frame.pack(side = tk.TOP)
+            res_fail_Frame = tk.Frame(result_window)
+            res_fail_Frame.pack(side = tk.TOP)
+            list = [res_secc_Frame,res_fail_Frame]
+
             label = tk.Label(res_secc_Frame,text = '成功',bg = 'green')
             label['font'] = (None, 20,'italic')
             label.grid(column = 0,row = 0,columnspan = len(cks),sticky=tk.NSEW)  #
@@ -795,18 +815,27 @@ def gameView():
                     label.grid(column = j,row = i+2,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
 
         else:
+            result_Frame = tk.Frame(result_window)
+            result_Frame.pack(side = tk.TOP)
             data = {}
             data['id'] = '無'
             data['name'] = request.name
             for i in range(len(ck)):
                 data[ck[i]] = request.CkPt[ck[i]]
+
+            for i in range(len(cks)):
+                label = tk.Label(result_Frame,text = cks[i],bg = 'dark green')
+                label['font'] = (None, 20,'italic')
+                label.grid(column = i,row = 0,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
+
             for i in range(len(cks_)):
-                text = cks_[i]
+                text = data[cks_[i]]
                 label = tk.Label(result_Frame,text = text,bg = 'yellow')
                 label['font'] = (None, 12,'italic')
-                label.grid(column = i,row = 1,sticky=tk.NSEW)
+                label.grid(column = i,row = 1,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
            
         def close():
+            leaveButt.config(state = 'active')
             result_window.destroy()
 
         close_btn = tk.Button(result_window,bg = 'yellow',text = '確定',width = 5, height = 2)
