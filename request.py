@@ -97,7 +97,7 @@ class Api_request:
             print('玩家獲取 : 解碼問題')
         try:
             self.players_data = self.players_text['data'][self.player_id]
-            print(players_text['reason'])
+            print(self.players_text['reason'])
         except:
             print('玩家獲取 : print問題')
 

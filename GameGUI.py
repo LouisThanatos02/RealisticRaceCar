@@ -350,6 +350,7 @@ def room_view():
         outRoomFrame.pack(anchor=tk.CENTER)
         roomFrame.grid(column=0, row=0, padx=5, pady=5)
         roomList = []
+        count = 0
         text_noRoom = '目前沒有賽事' + server_state
         noRoom = tk.Label(roomFrame,bg='yellow',height = 1,text = text_noRoom)
 
@@ -357,11 +358,12 @@ def room_view():
         if(len(rooms)):
             for i in rooms:
                 if(rooms[i]['state'] == 'W'):
+                    count += 1
                     text = '賽事號碼 : %s | 名稱 : %s | 主持人 : %s'%(i,rooms[i]['name'],rooms[i]['leader'])
                     text = '賽事號碼 : %s | 賽事名稱 : %s | 主持人 : %s'%(i,rooms[i]['name'],rooms[i]['leader'],)
                     button = tk.Button(roomFrame,bg='yellow',text = text, height = 1,command=partial(joinRoom,i))
                     button['font'] =  (None, 16, 'italic')
-                    button.pack(side = tk.TOP)
+                    button.grid(column = 0,row = count,ipadx = 1,ipady = 1,padx = 1,pady = 1,sticky=tk.NSEW)
                     roomList.append(button)
                     #print(roomList)
         if(len(roomList) == False):
@@ -626,7 +628,7 @@ def gameView():
                 request.update_result()
             except:
                 print('伺服器沒有連線，請重新啟動')
-            ck_name = ['始','1','2','3','4','5','終',]
+            ck_name = ['始','查1','查2','查3','查4','查5','終',]
             ck_bool = [True,True,True,True,True,True,True]
             ck_time = [':',':',':',':',':',':',':',]
             Ck_label()
@@ -764,7 +766,7 @@ def gameView():
         except:
             print('伺服器沒有連線，請重新啟動')
 
-        cks = ['排名','名字','檢查點1','檢查點2','檢查點3','檢查點4','檢查點5','終點']
+        cks = ['排名','名字','查核點1','查核點2','查核點3','查核點4','查核點5','終點']
         cks2 = ['編號','名字']
         ck = ['ck_1','ck_2','ck_3','ck_4','ck_5','ck_end']
         ck2 = ['id','name']
