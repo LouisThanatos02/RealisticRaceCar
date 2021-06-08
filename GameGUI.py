@@ -717,11 +717,13 @@ def gameView():
         set()  
 
     def finish_chack():
+        global count,text,text2
         chack_window = tk.Tk()
         chack = tk.Frame(chack_window)
         count = 0
         label = tk.Label(chack_window)
         text = '正在等待其他玩家完成賽事'
+        text2 = text
 
         def set():
             label['text'] = text
@@ -731,10 +733,11 @@ def gameView():
 
         def loop():
             for i in range(count):
-                text += '.'
-            label['text'] = text
+                text2 += '.'
+            label['text'] = text2
             count += 1
             if(count == 3):
+                text2 = text
                 count = 0
             request.get_results('WUF')
             data = request.results_data
