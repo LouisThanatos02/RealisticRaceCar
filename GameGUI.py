@@ -732,6 +732,7 @@ def gameView():
             loop()
 
         def loop():
+            global count,text,text2
             for i in range(count):
                 text2 += '.'
             label['text'] = text2
