@@ -93,7 +93,10 @@ class ThreadedInputs:
 			if self.stopped:
 				return
 			# Code execution stops at the following line until a gamepad event occurs.
-			events = get_gamepad()
+			try:
+				events = get_gamepad()
+			except:
+				pass
 			for event in events:
 				event_test = self.gamepadInputs.get(event.code, self.NOMATCH)
 				if event_test != self.NOMATCH:
