@@ -748,6 +748,7 @@ def gameView():
                 chack.after(300,loop)
             else:
                 chack.destroy()
+                chack_window.destroy()
                 show_result()
         set()
 
