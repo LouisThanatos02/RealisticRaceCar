@@ -13,8 +13,8 @@ class Api_request:
         self.domain = '@gm.lhu.edu.tw'
         self.def_pwd = 'pwd1234'
         self.online = True
-        #self.base_url =  'http://www.r2c.lhu.edu.tw/api/'
-        self.base_url =  'http://192.168.50.1/api/'
+        #self.base_url =  'http://www.r2c.lhu.edu.tw/api/'   #local才可用，用才測試程式碼
+        self.base_url =  'http://192.168.50.1/api/'     #192.168.50.1需替換成伺服器的IP
         self.register_url = self.base_url+'register'    #post
         self.login_url =  self.base_url+'login'         #post
         #CkPt
