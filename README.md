@@ -1,15 +1,4 @@
 # RealisticRaceCar
-Car_joyControl.py是無多線程的搖桿控制
-CarControl_keyBoard.py是鍵盤控制
-FullScr_cam.py是無多線程的全螢幕相機讀取與顯示
-joyMyControl.py是單純搖桿的讀取
-joyStick_test.py同上 但做測試用
-Race_joy_test.py是測試賽車搖桿的
-servo_lut_test.py為產生左右轉S型控制參數的測試程式
-servo_test.py and servo_test1.py 是用來測試左右轉的馬達
-start.py是實感賽車專案的入口
-test.py測試用
-csi_camera.py是提供thread_cam的讀取
-thread_cam.py是多線程的相機讀取和顯示
-thread_joy.py是多線程的搖桿控制
-wifi_test.sh是一個簡單的wifi測試工具
+gameGUI.py、thread_joy.py、qrcode.py、request.py、csi_camera.py、Timer.py是主要會用到的<br>
+thread_joy.py只有在Linux有用，負責讀取搖桿及控制車輛<br>
+其餘皆為測試用程式碼
